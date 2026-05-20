@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "auto",
+  "workspace": ["./packages/graphy-toolkit-core", "./packages/graphy-toolkit"],
+  "imports": {
+    "@at-flux/graphy-toolkit-core": "./packages/graphy-toolkit-core/src/index.ts"
+  }
+}
