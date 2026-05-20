@@ -1,0 +1,10 @@
+node_modules/
+packages/*/dist/
+dist/
+.deno/
+coverage/
+*.tgz
+.DenoCompile.*
+.graphy-extract/
+.pnpm-store/
+.deno/
