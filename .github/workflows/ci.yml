@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and test in Docker
+        run: docker compose -f docker/compose.yml run --rm ci
+
+  compile-smoke:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile portable graphy binary
+        run: docker compose -f docker/compose.yml run --rm compile
+
+      - name: Upload graphy binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphy-linux-x64
+          path: dist/bin/graphy
