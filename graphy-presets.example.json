@@ -1,0 +1,31 @@
+{
+  "stills": {
+    "release": {
+      "sourceRoot": "./images",
+      "distRoot": "./dist",
+      "watermark": "./brand.svg",
+      "watermarkMode": "marked-only"
+    },
+    "watermark": {
+      "opacity": 0.22,
+      "sizeRatio": 0.1,
+      "paddingRatio": 0.02
+    },
+    "size": {
+      "jpegQuality": 84,
+      "pngQuality": 84,
+      "webpQuality": 82,
+      "avifQuality": 54,
+      "copyright": ""
+    }
+  },
+  "clips": {
+    "watermark": {
+      "sourceRoot": "./clips",
+      "distRoot": "./dist",
+      "watermark": "./brand.svg",
+      "opacity": 0.22,
+      "position": "bottom-right"
+    }
+  }
+}
