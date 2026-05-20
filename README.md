@@ -48,7 +48,17 @@ See `image-release/README.md` for bucket table reference.
 
 ## Install
 
-`graphy install` runs `npx skills add <this-repo> --skill graphy-toolkit --global --yes` and copies `dist/bin/graphy` when present.
+- `graphy install` — installs the agent skill and copies `dist/bin/graphy` to `~/.local/bin` when the binary exists
+- `graphy install skill` — skill only (`npx skills add` for this repo’s `graphy-toolkit` skill)
+
+## Portable binary
+
+```bash
+pnpm compile:graphy   # local: scripts/compile-graphy-local.sh + Deno --self-extracting
+pnpm compile:graphy:docker   # when Docker is available
+```
+
+Output: `dist/bin/graphy` (~300MB with Sharp natives). First run extracts beside the binary.
 
 ## Release
 
