@@ -1,0 +1,42 @@
+{
+  "name": "@at-flux/graphy-toolkit",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CLI for still and clip release pipelines (graphy)",
+  "license": "MIT",
+  "author": "Taylor Siviter <taylor@siviter.xyz>",
+  "bin": {
+    "graphy": "./dist/bin/graphy.js"
+  },
+  "files": ["dist", "skills", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "bundle": "esbuild src/bin/graphy.ts --bundle --platform=node --format=esm --outfile=dist/bundle/graphy.mjs --external:sharp --alias:@at-flux/graphy-toolkit-core=../graphy-toolkit-core/dist/index.js --banner:js=\"#!/usr/bin/env node\"",
+    "bundle:deno": "esbuild src/bin/graphy.ts --bundle --platform=node --format=esm --outfile=dist/bundle/graphy-deno.mjs --external:sharp --alias:@at-flux/graphy-toolkit-core=../graphy-toolkit-core/dist/index.js",
+    "dev": "tsx src/bin/graphy.ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@at-flux/graphy-toolkit-core": "workspace:*",
+    "@stricli/core": "^1.2.6",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/at-flux/graphy-toolkit.git",
+    "directory": "packages/graphy-toolkit"
+  }
+}
