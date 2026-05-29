@@ -28,7 +28,7 @@ describe('resolveSourceSpec', () => {
   it('throws when a directory has no images', async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), 'graphy-empty-'));
     await writeFile(path.join(dir, 'readme.txt'), 'x');
-    await expect(resolveSourceSpec(dir, process.cwd())).rejects.toThrow(/No image files/);
+    await expect(resolveSourceSpec(dir, process.cwd())).rejects.toThrow(/No matching files/);
   });
 });
 
