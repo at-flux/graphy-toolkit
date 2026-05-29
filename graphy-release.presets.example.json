@@ -15,8 +15,7 @@
       "jpegQuality": 84,
       "pngQuality": 84,
       "webpQuality": 82,
-      "avifQuality": 54,
-      "copyright": ""
+      "avifQuality": 54
     }
   },
   "clips": {
@@ -24,8 +23,7 @@
       "sourceRoot": "./clips",
       "distRoot": "./dist",
       "watermark": "./brand.svg",
-      "opacity": 0.22,
-      "position": "bottom-right"
+      "opacity": 0.22
     }
   }
 }
