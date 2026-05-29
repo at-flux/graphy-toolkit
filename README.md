@@ -115,7 +115,7 @@ docker compose -f docker/compose.yml run --rm ci
 pnpm compile:graphy
 ```
 
-Dependency policy: exact versions in packages, `minimum-release-age=7` days in [`.npmrc`](.npmrc), [Renovate](renovate.json) with 7-day minimum.
+Dependency policy: exact versions in packages; 7-day install delay via [`minimumReleaseAge`](pnpm-workspace.yaml) in `pnpm-workspace.yaml` (pnpm workspace config, not npm).
 
 ## Release
 
