@@ -34,7 +34,11 @@ const app = buildApplication(
     },
     docs: { brief: 'Graphy media release toolkit' },
   }),
-  { name: 'graphy' },
+  {
+    name: 'graphy',
+    scanner: { caseStyle: 'allow-kebab-for-camel' },
+    documentation: { caseStyle: 'convert-camel-to-kebab' },
+  },
 );
 
 async function main(): Promise<void> {

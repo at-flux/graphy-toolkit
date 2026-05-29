@@ -1,8 +1,11 @@
 import path from 'node:path';
 import {
+  findDefaultPresetsFile,
   loadPresetsFile,
   mergePreset,
+  resolveSourceSpec,
   type GraphyPresets,
+  type ResolvedSource,
   type WatermarkMode,
 } from '@at-flux/graphy-toolkit-core';
 
@@ -15,67 +18,103 @@ export type CommonFlags = {
   watermarkMode?: WatermarkMode;
 };
 
-export type ResolvedPaths = {
-  sourceRoot: string;
+export type ResolvedIO = {
+  source: ResolvedSource;
   distRoot: string;
-  watermarkPath: string;
   copyright: string;
   watermarkMode: WatermarkMode;
   presets?: GraphyPresets;
+  presetsPath?: string;
 };
 
-export async function resolvePaths(
+export type ResolvedRelease = ResolvedIO & {
+  watermarkPath: string;
+};
+
+async function loadPresets(flags: CommonFlags, cwd: string): Promise<{
+  presets?: GraphyPresets;
+  presetsPath?: string;
+}> {
+  const presetsPath =
+    flags.presets != null
+      ? path.resolve(cwd, flags.presets)
+      : await findDefaultPresetsFile(cwd);
+  if (!presetsPath) return {};
+  return { presets: await loadPresetsFile(presetsPath), presetsPath };
+}
+
+function mergeReleasePresets(
+  presets: GraphyPresets | undefined,
+  presetKey: 'release' | 'watermark' | 'size',
+  domain: 'stills' | 'clips',
+): Record<string, unknown> | undefined {
+  const stillsPresets = presets?.stills;
+  const clipsPresets = presets?.clips;
+  if (domain === 'stills' && presetKey === 'release') return stillsPresets?.release;
+  if (domain === 'stills' && presetKey === 'size') return stillsPresets?.size;
+  if (domain === 'stills' && presetKey === 'watermark') return stillsPresets?.watermark;
+  if (domain === 'clips' && presetKey === 'watermark') return clipsPresets?.watermark;
+  return undefined;
+}
+
+/** Resolve source, dist, and presets (watermark not required). */
+export async function resolveIO(
   flags: CommonFlags,
   cwd: string,
   presetKey: 'release' | 'watermark' | 'size',
   domain: 'stills' | 'clips',
-): Promise<ResolvedPaths> {
-  let presets: GraphyPresets | undefined;
-  if (flags.presets) {
-    presets = await loadPresetsFile(path.resolve(cwd, flags.presets));
-  }
+): Promise<ResolvedIO> {
+  const { presets, presetsPath } = await loadPresets(flags, cwd);
+  const actionPresets = mergeReleasePresets(presets, presetKey, domain);
 
-  const stillsPresets = presets?.stills;
-  const clipsPresets = presets?.clips;
-  const actionPresets =
-    domain === 'stills' && presetKey === 'release'
-      ? stillsPresets?.release
-      : domain === 'stills' && presetKey === 'size'
-        ? stillsPresets?.size
-        : domain === 'stills' && presetKey === 'watermark'
-          ? stillsPresets?.watermark
-          : domain === 'clips' && presetKey === 'watermark'
-            ? clipsPresets?.watermark
-            : undefined;
-
-  const merged = mergePreset(actionPresets as Record<string, string> | undefined, {
+  const merged = mergePreset(actionPresets, {
     sourceRoot: flags.source,
     distRoot: flags.dist,
-    watermark: flags.watermark,
     copyright: flags.copyright,
     watermarkMode: flags.watermarkMode,
   });
 
-  const sourceRoot = path.resolve(cwd, merged.sourceRoot ?? './images');
-  const distRoot = path.resolve(cwd, merged.distRoot ?? './dist');
+  const sourceSpec = String(merged.sourceRoot ?? flags.source ?? './images');
+  const source = await resolveSourceSpec(sourceSpec, cwd);
+  const distRoot = path.resolve(cwd, String(merged.distRoot ?? flags.dist ?? './dist'));
+
+  return {
+    source,
+    distRoot,
+    copyright: String(merged.copyright ?? flags.copyright ?? ''),
+    watermarkMode:
+      (merged.watermarkMode as WatermarkMode | undefined) ??
+      flags.watermarkMode ??
+      'marked-only',
+    presets,
+    presetsPath,
+  };
+}
+
+/** Resolve paths for commands that require a watermark asset. */
+export async function resolveRelease(
+  flags: CommonFlags,
+  cwd: string,
+  presetKey: 'release' | 'watermark' | 'size',
+  domain: 'stills' | 'clips',
+): Promise<ResolvedRelease> {
+  const io = await resolveIO(flags, cwd, presetKey, domain);
+  const actionPresets = mergeReleasePresets(io.presets, presetKey, domain);
+  const merged = mergePreset(actionPresets, {
+    watermark: flags.watermark,
+  });
+
   const watermarkPath = merged.watermark
-    ? path.resolve(cwd, merged.watermark)
+    ? path.resolve(cwd, String(merged.watermark))
     : flags.watermark
       ? path.resolve(cwd, flags.watermark)
       : '';
 
   if (!watermarkPath) {
     throw new Error(
-      'Watermark path required: pass --watermark <file.svg> or set stills.release.watermark / clips.watermark in graphy-presets.json',
+      'Watermark required: pass --watermark <file.svg> or set stills.release.watermark in graphy-release.presets.json',
     );
   }
 
-  return {
-    sourceRoot,
-    distRoot,
-    watermarkPath,
-    copyright: merged.copyright ?? flags.copyright ?? '',
-    watermarkMode: (merged.watermarkMode as WatermarkMode | undefined) ?? flags.watermarkMode ?? 'marked-only',
-    presets,
-  };
+  return { ...io, watermarkPath };
 }

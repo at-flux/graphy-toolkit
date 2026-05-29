@@ -7,7 +7,7 @@ import {
 } from '@at-flux/graphy-toolkit-core';
 import { buildCommand } from '@stricli/core';
 import type { CommonFlags } from '../config/resolve.js';
-import { resolvePaths } from '../config/resolve.js';
+import { resolveIO, resolveRelease } from '../config/resolve.js';
 
 function normalizeArgs(args: string[]): string[] {
   if (!args.includes('--no-watermark')) return args;
@@ -18,13 +18,14 @@ function normalizeArgs(args: string[]): string[] {
 type StillsFlags = CommonFlags;
 
 async function runRelease(flags: StillsFlags): Promise<void> {
-  const paths = await resolvePaths(flags, process.cwd(), 'release', 'stills');
+  const paths = await resolveRelease(flags, process.cwd(), 'release', 'stills');
   const wmPreset = paths.presets?.stills?.watermark;
   const sizePreset = paths.presets?.stills?.size;
 
   const result = await stillsReleaseAction.run(
     {
-      sourceRoot: paths.sourceRoot,
+      sourceRoot: paths.source.sourceRoot,
+      sourceFiles: paths.source.files,
       distRoot: paths.distRoot,
       watermarkPath: paths.watermarkPath,
       watermarkMode: paths.watermarkMode,
@@ -38,11 +39,12 @@ async function runRelease(flags: StillsFlags): Promise<void> {
 }
 
 async function runSize(flags: StillsFlags): Promise<void> {
-  const paths = await resolvePaths(flags, process.cwd(), 'size', 'stills');
+  const paths = await resolveIO(flags, process.cwd(), 'size', 'stills');
   const sizePreset = paths.presets?.stills?.size;
   const result = await stillsSizeAction.run(
     {
-      sourceRoot: paths.sourceRoot,
+      sourceRoot: paths.source.sourceRoot,
+      sourceFiles: paths.source.files,
       distRoot: paths.distRoot,
       encode: EncodeQualitySchema.parse(sizePreset ?? {}),
     },
@@ -52,10 +54,11 @@ async function runSize(flags: StillsFlags): Promise<void> {
 }
 
 async function runWatermark(flags: StillsFlags): Promise<void> {
-  const paths = await resolvePaths(flags, process.cwd(), 'watermark', 'stills');
+  const paths = await resolveRelease(flags, process.cwd(), 'watermark', 'stills');
   const sizeResult = await stillsSizeAction.run(
     {
-      sourceRoot: paths.sourceRoot,
+      sourceRoot: paths.source.sourceRoot,
+      sourceFiles: paths.source.files,
       distRoot: paths.distRoot,
       encode: EncodeQualitySchema.parse(paths.presets?.stills?.size ?? {}),
     },
@@ -77,13 +80,13 @@ async function runWatermark(flags: StillsFlags): Promise<void> {
 
 const flagParams = {
   source: {
-    brief: 'Source directory (recursive)',
+    brief: 'Source directory, file, or glob (e.g. ./images, ./images/*.JPG)',
     kind: 'parsed' as const,
     parse: String,
     optional: true as const,
   },
   dist: {
-    brief: 'Output directory (mirrors source tree)',
+    brief: 'Output directory (mirrors paths relative to source root)',
     kind: 'parsed' as const,
     parse: String,
     optional: true as const,
@@ -95,19 +98,19 @@ const flagParams = {
     optional: true as const,
   },
   presets: {
-    brief: 'graphy-presets.json path',
+    brief: 'Presets JSON (default: graphy-release.presets.json in cwd)',
     kind: 'parsed' as const,
     parse: String,
     optional: true as const,
   },
   copyright: {
-    brief: 'Copyright/artist string when source has none',
+    brief: 'Copyright/artist when source EXIF has none',
     kind: 'parsed' as const,
     parse: String,
     optional: true as const,
   },
   watermarkMode: {
-    brief: 'marked-only or unmarked-only',
+    brief: 'marked-only (default) or unmarked-only',
     kind: 'parsed' as const,
     parse: (v: string) => {
       if (v === 'marked-only' || v === 'unmarked-only') return v;
@@ -120,19 +123,19 @@ const flagParams = {
 export const stillsReleaseCommand = buildCommand({
   func: runRelease,
   parameters: { flags: flagParams, positional: { kind: 'tuple', parameters: [] } },
-  docs: { brief: 'Run stills size then watermark (full release pipeline)' },
+  docs: { brief: 'Scale stills, build thumbs, watermark, and write outputs' },
 });
 
 export const stillsSizeCommand = buildCommand({
   func: runSize,
   parameters: { flags: flagParams, positional: { kind: 'tuple', parameters: [] } },
-  docs: { brief: 'Scale stills and build thumbs only (no watermark)' },
+  docs: { brief: 'Scale stills and build thumb-1x1 / thumb-3x1 (no watermark)' },
 });
 
 export const stillsWatermarkCommand = buildCommand({
   func: runWatermark,
   parameters: { flags: flagParams, positional: { kind: 'tuple', parameters: [] } },
-  docs: { brief: 'Size then apply watermark and write outputs' },
+  docs: { brief: 'Size, watermark, and write outputs' },
 });
 
 export { normalizeArgs };
