@@ -2,7 +2,7 @@
   "name": "@at-flux/graphy-toolkit-core",
   "version": "0.1.0",
   "type": "module",
-  "description": "Image and clip processing services and composable release actions for graphy",
+  "description": "Image and clip pipeline engine for graphy (Sharp, Zod, preset-driven steps)",
   "license": "MIT",
   "author": "Taylor Siviter <taylor@siviter.xyz>",
   "exports": {

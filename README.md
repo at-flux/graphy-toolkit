@@ -114,3 +114,5 @@ Dependency policy: exact versions in packages; 7-day install delay via [`minimum
 CI on `main`; `@qiwi/multi-semantic-release` publishes changed packages to npm (OIDC). Deno-compiled binaries attached on release.
 
 See package READMEs for API surface and import paths.
+
+Agent skill for Cursor etc.: [`packages/graphy-toolkit/skills/graphy-toolkit/SKILL.md`](packages/graphy-toolkit/skills/graphy-toolkit/SKILL.md) (shipped in the npm package).
