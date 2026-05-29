@@ -19,6 +19,7 @@ export const stillsReleaseAction = defineAction({
     const sized = await stillsSizeAction.run(
       {
         sourceRoot: input.sourceRoot,
+        sourceFiles: input.sourceFiles,
         distRoot: input.distRoot,
         encode,
       },

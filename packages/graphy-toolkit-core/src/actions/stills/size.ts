@@ -18,6 +18,16 @@ import {
 
 const DEFAULT_ENCODE = EncodeQualitySchema.parse({});
 
+async function listSourceFiles(input: {
+  sourceRoot: string;
+  sourceFiles?: string[];
+}): Promise<string[]> {
+  const files =
+    input.sourceFiles ??
+    (await walkFiles(input.sourceRoot)).filter((f) => IMAGE_REGEX.test(f));
+  return files.filter((f) => IMAGE_REGEX.test(f));
+}
+
 export const stillsSizeAction = defineAction({
   name: 'stills/size',
   inputSchema: StillsSizeInputSchema,
@@ -27,7 +37,11 @@ export const stillsSizeAction = defineAction({
     await fs.mkdir(input.distRoot, { recursive: true });
 
     const encode = { ...DEFAULT_ENCODE, ...input.encode };
-    const files = (await walkFiles(input.sourceRoot)).filter((f) => IMAGE_REGEX.test(f));
+    const files = await listSourceFiles(input);
+    if (files.length === 0) {
+      throw new Error(`No image files found under source: ${input.sourceRoot}`);
+    }
+
     const items = [];
 
     for (const sourceFilePath of files) {

@@ -10,6 +10,7 @@ export const EncodeQualitySchema = z.object({
 
 export const StillsSizeInputSchema = z.object({
   sourceRoot: z.string(),
+  sourceFiles: z.array(z.string()).optional(),
   distRoot: z.string(),
   encode: EncodeQualitySchema.optional(),
 });
@@ -60,6 +61,7 @@ export const StillsWatermarkOutputSchema = z.object({
 
 export const StillsReleaseInputSchema = z.object({
   sourceRoot: z.string(),
+  sourceFiles: z.array(z.string()).optional(),
   distRoot: z.string(),
   watermarkPath: z.string(),
   watermarkMode: WatermarkModeSchema.default('marked-only'),
