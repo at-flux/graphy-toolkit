@@ -1,6 +1,12 @@
 packages:
   - 'packages/*'
 
+# 7 days (minutes) before newly published versions may be installed
+minimumReleaseAge: 10080
+
+# Install and record exact versions (no ^ / ~ ranges)
+savePrefix: ''
+
 onlyBuiltDependencies:
   - esbuild
   - sharp
