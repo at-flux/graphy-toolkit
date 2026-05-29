@@ -11,5 +11,13 @@ export function mergePreset<T extends Record<string, unknown>>(
   base: T | undefined,
   override: Partial<T> | undefined,
 ): T {
-  return { ...base, ...override } as T;
+  const merged = { ...(base ?? ({} as T)) };
+  if (override) {
+    for (const [key, value] of Object.entries(override)) {
+      if (value !== undefined) {
+        (merged as Record<string, unknown>)[key] = value;
+      }
+    }
+  }
+  return merged as T;
 }

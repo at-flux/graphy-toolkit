@@ -68,6 +68,6 @@ export const stillsWatermarkAction = defineAction({
       }
     }
 
-    return { processed: input.items.length, written };
+    return { processed: input.items.length, written: [...new Set(written)] };
   },
 });
