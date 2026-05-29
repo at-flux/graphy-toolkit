@@ -1,29 +1,88 @@
 {
   "stills": {
-    "release": {
-      "sourceRoot": "./images",
-      "distRoot": "./dist",
-      "watermark": "./brand.svg",
-      "watermarkMode": "marked-only"
+    "sourceRoot": "./images",
+    "distRoot": "./dist",
+    "quiet": false,
+    "steps": {
+      "watermark": {
+        "type": "watermark",
+        "watermark": "./brand.svg",
+        "opacity": 0.22,
+        "sizeRatio": 0.1,
+        "paddingRatio": 0.02
+      },
+      "thumnail-suffix": {
+        "type": "filename",
+        "suffix": "thumb"
+      },
+      "aspect-suffix": {
+        "type": "filename",
+        "suffix": "{aspect_ratio}"
+      },
+      "encoding": {
+        "type": "encoding",
+        "jpegQuality": 84
+      },
+      "3x2": {
+        "type": "resize",
+        "width": 3240,
+        "height": 2160,
+        "scale": "fit"
+      },
+      "1x1": {
+        "type": "resize",
+        "width": 2160,
+        "height": 2160,
+        "scale": "crop",
+        "align": "center"
+      },
+      "3x1": {
+        "type": "resize",
+        "width": 3240,
+        "height": 1080,
+        "scale": "crop",
+        "align": "center"
+      },
+      "copyright": {
+        "type": "copyright",
+        "copyright": ""
+      }
     },
-    "watermark": {
-      "opacity": 0.22,
-      "sizeRatio": 0.1,
-      "paddingRatio": 0.02
-    },
-    "size": {
-      "jpegQuality": 84,
-      "pngQuality": 84,
-      "webpQuality": 82,
-      "avifQuality": 54
-    }
+    "pipelines": [
+      {
+        "name": "release",
+        "steps": ["3x2", "watermark", "encoding", "aspect-suffix"]
+      },
+      {
+        "name": "thumnails",
+        "steps": [
+          "3x2",
+          ["1x1", "3x1"],
+          "watermark",
+          "encoding",
+          "thumnail-suffix",
+          "aspect-suffix"
+        ]
+      }
+    ]
   },
   "clips": {
-    "watermark": {
-      "sourceRoot": "./clips",
-      "distRoot": "./dist",
-      "watermark": "./brand.svg",
-      "opacity": 0.22
-    }
+    "sourceRoot": "./clips",
+    "distRoot": "./dist",
+    "steps": {
+      "watermark": {
+        "type": "watermark",
+        "watermark": "./brand.svg",
+        "opacity": 0.22,
+        "sizeRatio": 0.1,
+        "paddingRatio": 0.02
+      }
+    },
+    "pipelines": [
+      {
+        "name": "default",
+        "steps": ["watermark"]
+      }
+    ]
   }
 }

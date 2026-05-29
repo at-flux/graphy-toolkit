@@ -2,24 +2,24 @@
 
 [![CI](https://github.com/at-flux/graphy-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/at-flux/graphy-toolkit/actions/workflows/ci.yml)
 
-pnpm monorepo for **graphy** — a composable still/clip release CLI built on Sharp, Zod actions, and Stricli.
+pnpm monorepo for **graphy** — a composable still/clip release CLI built on Sharp, Zod step schemas, and Stricli.
 
 | Package | npm | Role |
 |---------|-----|------|
-| [`@at-flux/graphy-toolkit-core`](packages/graphy-toolkit-core/) | [![npm](https://img.shields.io/npm/v/@at-flux/graphy-toolkit-core)](https://www.npmjs.com/package/@at-flux/graphy-toolkit-core) | Services + Zod actions (library) |
+| [`@at-flux/graphy-toolkit-core`](packages/graphy-toolkit-core/) | [![npm](https://img.shields.io/npm/v/@at-flux/graphy-toolkit-core)](https://www.npmjs.com/package/@at-flux/graphy-toolkit-core) | Pipeline engine + services (library) |
 | [`@at-flux/graphy-toolkit`](packages/graphy-toolkit/) | [![npm](https://img.shields.io/npm/v/@at-flux/graphy-toolkit)](https://www.npmjs.com/package/@at-flux/graphy-toolkit) | `graphy` CLI |
 
 ## Quick start
 
 ```bash
 pnpm install && pnpm build
-pnpm graphy stills release   # reads ./graphy-release.presets.json when present
+pnpm graphy stills   # reads ./graphy-release.presets.json when present
 ```
 
 After both packages are on npm:
 
 ```bash
-pnpm dlx @at-flux/graphy-toolkit stills release --presets ./graphy-release.presets.json
+pnpm dlx @at-flux/graphy-toolkit stills --presets ./graphy-release.presets.json
 ```
 
 Portable binary: `pnpm compile:graphy` → `dist/bin/graphy`.
@@ -33,7 +33,7 @@ pnpm test:pack
 Battle-test fixtures (sibling `../test/` folder):
 
 ```bash
-pnpm test:fixtures   # release + verify against dist-old
+pnpm test:fixtures   # stills + verify against dist-old
 pnpm test            # includes dist-old parity integration when fixtures exist
 ```
 
@@ -41,76 +41,68 @@ pnpm test            # includes dist-old parity integration when fixtures exist
 
 | Command | Description |
 |---------|-------------|
-| `graphy stills release` | Full pipeline: orient → scale → thumbs → watermark → write |
-| `graphy stills size` | Scale + thumbs only |
-| `graphy stills watermark` | Size, then watermark + write |
-| `graphy clips watermark` | ffmpeg overlay (requires ffmpeg on PATH) |
+| `graphy stills` | Run stills pipelines from presets (release, thumbnails, …) |
+| `graphy clips` | Run clip pipelines (ffmpeg watermark overlay) |
 | `graphy install` | Install agent skill + copy binary to `~/.local/bin` |
 | `graphy install skill` | Agent skill only |
 
-### CLI flags (`stills *`)
+### CLI flags (`stills`, `clips`)
 
 | Flag | Preset key | Description |
 |------|------------|-------------|
-| `--source <path\|glob>` | `stills.release.sourceRoot` | Directory, file, or glob (`./images`, `./images/*.JPG`) |
-| `--dist <dir>` | `stills.release.distRoot` | Output root; mirrors paths relative to source root |
-| `--watermark <svg>` | `stills.release.watermark` | Watermark SVG (required for release/watermark unless preset) |
+| `--source <path\|glob>` | `sourceRoot` | Directory, file, or glob (`./images`, `./images/*.JPG`) |
+| `--dist <dir>` | `distRoot` | Output root; mirrors paths relative to source root |
 | `--presets <file>` | — | Presets JSON (default: `graphy-release.presets.json` in cwd) |
-| `--copyright <text>` | `stills.size.copyright` | IFD0 Copyright/Artist when source has none |
-| `--watermark-mode marked-only\|unmarked-only` | `stills.release.watermarkMode` | Skip watermark when `unmarked-only` |
-| `--no-watermark` | — | Alias for `--watermark-mode unmarked-only` |
+| `--pipeline <name>` | — | Run only one named pipeline from presets |
+| `--quiet` | `quiet` | Suppress progress UI; stdout summary only |
+| `--fail-fast` | — | Stop on first file/pipeline error |
 
-Watermark tuning (`stills.watermark` preset / not yet CLI flags): `opacity` (0–1), `sizeRatio`, `paddingRatio`.
+Progress and applied settings go to stderr; the final line on stdout is `done: N input(s), M file(s) written`.
 
-Encode tuning (`stills.size` preset): `jpegQuality`, `pngQuality`, `webpQuality`, `avifQuality`.
+## Presets (`graphy-release.presets.json`)
 
-### Presets file (`graphy-release.presets.json`)
-
-CLI flags override preset values. Example: [`graphy-release.presets.example.json`](graphy-release.presets.example.json).
+Presets define reusable **steps** (a dictionary) and **pipelines** that reference step names. Example: [`graphy-release.presets.example.json`](graphy-release.presets.example.json).
 
 ```json
 {
   "stills": {
-    "release": {
-      "sourceRoot": "./images",
-      "distRoot": "./dist",
-      "watermark": "./brand.svg",
-      "watermarkMode": "marked-only"
+    "sourceRoot": "./images",
+    "distRoot": "./dist",
+    "steps": {
+      "3x2": { "type": "resize", "width": 3240, "height": 2160, "scale": "fit" },
+      "watermark": { "type": "watermark", "watermark": "./brand.svg" },
+      "encoding": { "type": "encoding", "jpegQuality": 84 },
+      "aspect-suffix": { "type": "filename", "suffix": "{aspect_ratio}" }
     },
-    "watermark": { "opacity": 0.22, "sizeRatio": 0.1, "paddingRatio": 0.02 },
-    "size": { "jpegQuality": 84 }
+    "pipelines": [
+      { "name": "release", "steps": ["3x2", "watermark", "encoding", "aspect-suffix"] }
+    ]
   }
 }
 ```
 
-## Stills pipeline
+### Step types
 
-1. **Orient** — EXIF rotation first; portrait stays portrait.
-2. **Main** — nearest aspect bucket, fit inside max box, never upscale. Suffix e.g. `-3x2`, `-2x3`.
-3. **Thumbs** — `thumb-1x1` and `thumb-3x1` from the scaled main raster.
-4. **Watermark** — bottom-right SVG overlay (optional).
-5. **EXIF** — `keepMetadata()` through resizes; final write merges dimensions + orientation 1.
+| Type | Purpose |
+|------|---------|
+| `resize` | Fit or crop to width×height; sets `{aspect_ratio}` token from the target box |
+| `watermark` | SVG overlay (opacity, sizeRatio, paddingRatio) |
+| `filename` | Append suffix; supports `{aspect_ratio}` |
+| `copyright` | IFD0 Copyright/Artist when source has none |
+| `encoding` | Write JPEG/PNG/WebP/AVIF with quality; merges EXIF |
 
-| Bucket | Max W×H |
-|--------|---------|
-| `16x9` | 2560×1440 |
-| `9x16` | 1440×2560 |
-| `3x2` | 3240×2160 |
-| `2x3` | 2160×3240 |
-| `4x3` | 2560×1920 |
-| `3x4` | 1920×2560 |
-| `5x4` | 2560×2048 |
-| `4x5` | 2048×2560 |
-| `1x1` | 2160×2160 |
+Parallel branches: use a step array, e.g. `["1x1", "3x1"]` runs both resize steps concurrently.
 
-Per source file (marked mode): `basename-<bucket>.ext`, `basename-thumb-1x1.ext`, `basename-thumb-3x1.ext`.
+Pipelines reference `"encoding"` even when omitted from `steps` — a built-in default applies.
+
+Clips presets may use legacy `mappings` (merged into `steps`) and shorthand `pipelines: [["watermark"]]`.
 
 ## Development
 
 ```bash
 pnpm install
 pnpm typecheck && pnpm test && pnpm build
-pnpm graphy stills release --source ./path --dist ./out --watermark ./logo.svg
+cd ../test && node ../graphy-toolkit/packages/graphy-toolkit/dist/bin/graphy.js stills
 docker compose -f docker/compose.yml run --rm ci
 pnpm compile:graphy
 ```

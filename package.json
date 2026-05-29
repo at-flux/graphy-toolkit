@@ -13,7 +13,7 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "graphy": "node packages/graphy-toolkit/dist/bin/graphy.js",
-    "test:fixtures": "pnpm build && cd ../test && node ../graphy-toolkit/packages/graphy-toolkit/dist/bin/graphy.js stills release && cd ../graphy-toolkit/packages/graphy-toolkit-core && node ../../scripts/verify-test-dist.mjs",
+    "test:fixtures": "pnpm build && cd ../test && node ../graphy-toolkit/packages/graphy-toolkit/dist/bin/graphy.js stills && cd ../graphy-toolkit/packages/graphy-toolkit-core && node ../../scripts/verify-test-dist.mjs",
     "test:pack": "bash scripts/test-pack-local.sh",
     "release": "multi-semantic-release",
     "compile:graphy": "bash scripts/compile-graphy-local.sh",
