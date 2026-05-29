@@ -32,12 +32,18 @@ export function commonDirectoryPrefix(paths: string[]): string {
  * Resolve `--source` to files. Accepts a directory, a single file, or a glob
  * (e.g. `./images`, `./images/*.JPG`, `**` + `/*.jpg`).
  */
-export async function resolveSourceSpec(source: string, cwd: string): Promise<ResolvedSource> {
+export async function resolveSourceSpec(
+  source: string,
+  cwd: string,
+  fileFilter: RegExp = IMAGE_REGEX,
+): Promise<ResolvedSource> {
   const trimmed = source.trim();
   if (!trimmed) throw new Error('Source path or glob is required');
 
   if (GLOB_CHARS.test(trimmed)) {
-    const files = await fg(trimmed, { cwd, absolute: true, onlyFiles: true, dot: false });
+    const files = (await fg(trimmed, { cwd, absolute: true, onlyFiles: true, dot: false })).filter(
+      (f) => fileFilter.test(f),
+    );
     if (files.length === 0) {
       throw new Error(`No files matched source glob: ${trimmed}`);
     }
@@ -53,11 +59,15 @@ export async function resolveSourceSpec(source: string, cwd: string): Promise<Re
   }
 
   if (stat.isDirectory()) {
-    const files = (await walkFiles(abs)).filter((f) => IMAGE_REGEX.test(f));
+    const files = (await walkFiles(abs)).filter((f) => fileFilter.test(f));
     if (files.length === 0) {
-      throw new Error(`No image files found under source directory: ${abs}`);
+      throw new Error(`No matching files found under source directory: ${abs}`);
     }
     return { sourceRoot: abs, files };
+  }
+
+  if (!fileFilter.test(abs)) {
+    throw new Error(`Source file type not supported: ${abs}`);
   }
 
   return { sourceRoot: path.dirname(abs), files: [abs] };
