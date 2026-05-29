@@ -8,28 +8,37 @@
   "bin": {
     "graphy": "./dist/bin/graphy.js"
   },
-  "files": ["dist", "skills", "README.md"],
+  "files": [
+    "dist/bin",
+    "dist/commands",
+    "dist/config",
+    "skills",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "graphy": "node dist/bin/graphy.js",
     "bundle": "esbuild src/bin/graphy.ts --bundle --platform=node --format=esm --outfile=dist/bundle/graphy.mjs --external:sharp --alias:@at-flux/graphy-toolkit-core=../graphy-toolkit-core/dist/index.js --banner:js=\"#!/usr/bin/env node\"",
     "bundle:deno": "esbuild src/bin/graphy.ts --bundle --platform=node --format=esm --outfile=dist/bundle/graphy-deno.mjs --external:sharp --alias:@at-flux/graphy-toolkit-core=../graphy-toolkit-core/dist/index.js",
     "dev": "tsx src/bin/graphy.ts",
     "typecheck": "tsc --noEmit",
+    "test": "pnpm run build && vitest run",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
     "@at-flux/graphy-toolkit-core": "workspace:*",
-    "@stricli/core": "^1.2.6",
-    "zod": "^3.24.2"
+    "@stricli/core": "1.2.7",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
     "esbuild": "^0.25.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=20.19"
+    "node": ">=20.18"
   },
   "publishConfig": {
     "access": "public"
