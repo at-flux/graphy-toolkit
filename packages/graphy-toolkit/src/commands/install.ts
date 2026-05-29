@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { copyFile, mkdir, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,9 +13,20 @@ function defaultBinDir(): string {
   return path.join(os.homedir(), '.local', 'bin');
 }
 
-function repoRootFromCli(): string {
+/** Directory passed to `npx skills add` (contains skills/graphy-toolkit). */
+function skillInstallRoot(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  return path.resolve(here, '../../../..');
+  const pkgRoot = path.resolve(here, '../..');
+  if (existsSync(path.join(pkgRoot, 'skills', 'graphy-toolkit', 'SKILL.md'))) {
+    return pkgRoot;
+  }
+  return path.resolve(pkgRoot, '../..');
+}
+
+function compiledBinaryPath(): string {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const pkgRoot = path.resolve(here, '../..');
+  return path.resolve(pkgRoot, '../../dist/bin/graphy');
 }
 
 async function runNpxSkills(args: string[]): Promise<void> {
@@ -32,7 +44,7 @@ async function runNpxSkills(args: string[]): Promise<void> {
 }
 
 async function installSkill(agents: string[]): Promise<void> {
-  const root = repoRootFromCli();
+  const root = skillInstallRoot();
   const agentFlags = agents.flatMap((a) => ['--agent', a]);
   await runNpxSkills([
     root,
@@ -45,7 +57,7 @@ async function installSkill(agents: string[]): Promise<void> {
 }
 
 async function installBinary(binDir: string): Promise<string | null> {
-  const compiled = path.join(repoRootFromCli(), 'dist', 'bin', 'graphy');
+  const compiled = compiledBinaryPath();
   try {
     await stat(compiled);
   } catch {
