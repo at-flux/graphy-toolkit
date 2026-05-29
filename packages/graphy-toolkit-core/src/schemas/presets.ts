@@ -1,52 +1,52 @@
 import { z } from 'zod';
+import { PipelineSchema, StepSchema } from './steps.js';
 
-export const WatermarkModeSchema = z.enum(['marked-only', 'unmarked-only']);
+const StepsRecordSchema = z.record(z.string(), StepSchema);
 
-export const StillsWatermarkPresetSchema = z.object({
-  opacity: z.number().min(0).max(1).optional(),
-  sizeRatio: z.number().positive().optional(),
-  paddingRatio: z.number().min(0).optional(),
+const MediaSectionSchema = z.object({
+  sourceRoot: z.string().default('./images'),
+  distRoot: z.string().default('./dist'),
+  quiet: z.boolean().default(false),
+  steps: StepsRecordSchema,
+  pipelines: z.array(PipelineSchema).min(1),
 });
 
-export const StillsSizePresetSchema = z.object({
-  jpegQuality: z.number().int().min(1).max(100).optional(),
-  pngQuality: z.number().int().min(1).max(100).optional(),
-  webpQuality: z.number().int().min(1).max(100).optional(),
-  avifQuality: z.number().int().min(1).max(100).optional(),
-  copyright: z.string().optional(),
-});
+function normalizeSection(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null) return raw;
+  const obj = { ...(raw as Record<string, unknown>) };
+  if ('queit' in obj && !('quiet' in obj)) {
+    obj.quiet = obj.queit;
+    delete obj.queit;
+  }
+  return obj;
+}
 
-export const StillsReleasePresetSchema = z.object({
-  sourceRoot: z.string().optional(),
-  distRoot: z.string().optional(),
-  watermark: z.string().optional(),
-  watermarkMode: WatermarkModeSchema.optional(),
-});
-
-export const ClipsWatermarkPresetSchema = z.object({
-  sourceRoot: z.string().optional(),
-  distRoot: z.string().optional(),
-  watermark: z.string().optional(),
-  opacity: z.number().min(0).max(1).optional(),
-  sizeRatio: z.number().positive().optional(),
-  paddingRatio: z.number().min(0).optional(),
-  position: z.enum(['bottom-right']).optional(),
-});
+const ClipsSectionSchema = z.preprocess(
+  (raw) => {
+    const obj = normalizeSection(raw) as Record<string, unknown>;
+    if (typeof obj !== 'object' || obj === null) return obj;
+    const steps = {
+      ...((obj.mappings as Record<string, unknown>) ?? {}),
+      ...((obj.steps as Record<string, unknown>) ?? {}),
+    };
+    let pipelines = obj.pipelines;
+    if (Array.isArray(pipelines) && pipelines.length > 0 && Array.isArray(pipelines[0])) {
+      pipelines = (pipelines as string[][]).map((steps, i) => ({
+        name: i === 0 ? 'default' : `pipeline-${i}`,
+        steps,
+      }));
+    }
+    return { ...obj, steps, pipelines };
+  },
+  MediaSectionSchema.extend({
+    sourceRoot: z.string().default('./clips'),
+  }),
+);
 
 export const GraphyPresetsSchema = z.object({
-  stills: z
-    .object({
-      release: StillsReleasePresetSchema.optional(),
-      watermark: StillsWatermarkPresetSchema.optional(),
-      size: StillsSizePresetSchema.optional(),
-    })
-    .optional(),
-  clips: z
-    .object({
-      watermark: ClipsWatermarkPresetSchema.optional(),
-    })
-    .optional(),
+  stills: z.preprocess(normalizeSection, MediaSectionSchema).optional(),
+  clips: ClipsSectionSchema.optional(),
 });
 
 export type GraphyPresets = z.infer<typeof GraphyPresetsSchema>;
-export type WatermarkMode = z.infer<typeof WatermarkModeSchema>;
+export type MediaSection = z.infer<typeof MediaSectionSchema>;
