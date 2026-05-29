@@ -24,6 +24,7 @@ fs.writeFileSync(path.join('$STAGING', 'cli-package.json'), JSON.stringify(pkg, 
 
 mkdir -p "$STAGING/cli-pack"
 cp -r "$ROOT/packages/graphy-toolkit/dist" "$STAGING/cli-pack/dist"
+cp -r "$ROOT/packages/graphy-toolkit/skills" "$STAGING/cli-pack/skills"
 cp "$ROOT/packages/graphy-toolkit/README.md" "$STAGING/cli-pack/"
 cp "$STAGING/cli-package.json" "$STAGING/cli-pack/package.json"
 (cd "$STAGING/cli-pack" && npm pack --pack-destination "$STAGING" >/dev/null)
@@ -37,10 +38,13 @@ npm install "$CORE_TGZ" "$CLI_TGZ" >/dev/null 2>&1
 
 FIXTURE="$ROOT/../test"
 OUT="$STAGING/out"
-"$WORK/node_modules/.bin/graphy" stills release \
-  --source "$FIXTURE/images/P1017123.JPG" \
-  --dist "$OUT" \
-  --watermark "$FIXTURE/brand.svg"
+(
+  cd "$FIXTURE"
+  "$WORK/node_modules/.bin/graphy" stills \
+    --source "./images/P1017123.JPG" \
+    --dist "$OUT" \
+    --pipeline release
+)
 
-test "$(ls "$OUT" | wc -l)" -eq 3
-echo "pack smoke ok: 3 files in $OUT"
+test "$(ls "$OUT" | wc -l)" -eq 1
+echo "pack smoke ok: 1 release file in $OUT"

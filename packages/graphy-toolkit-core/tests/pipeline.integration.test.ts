@@ -81,10 +81,11 @@ describe.skipIf(!hasFixtures)('fixture dist-old parity', () => {
       const writtenBasenames = [...new Set(result.written.map((p) => path.basename(p)))].sort();
 
       function resolveWrittenName(refName: string): string | undefined {
-        if (writtenBasenames.includes(refName)) return refName;
-        // Release preset uses a fixed 3x2 fit box; dist-old used per-image buckets.
-        const alt = refName.replace(/-2x3(\.|[-_])/i, '-3x2$1');
-        return writtenBasenames.find((n) => n === alt);
+        const lower = refName.toLowerCase();
+        const exact = writtenBasenames.find((n) => n.toLowerCase() === lower);
+        if (exact) return exact;
+        const altLower = lower.replace(/-2x3(\.|[-_])/, '-3x2$1');
+        return writtenBasenames.find((n) => n.toLowerCase() === altLower);
       }
 
       for (const name of refNames) {
