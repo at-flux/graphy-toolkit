@@ -1,22 +1,31 @@
 # @at-flux/graphy-toolkit-core
 
-Composable still and clip processing for [graphy](../graphy-toolkit).
+[![npm version](https://img.shields.io/npm/v/@at-flux/graphy-toolkit-core)](https://www.npmjs.com/package/@at-flux/graphy-toolkit-core)
+[![license: MIT](https://img.shields.io/npm/l/@at-flux/graphy-toolkit-core)](https://github.com/at-flux/graphy-toolkit/blob/main/LICENSE)
 
-## Services
+Composable still/clip processing for [graphy](../README.md): services, Zod schemas, and chainable actions.
 
-- `stillService` — Sharp raster pipeline (scale, thumbs, encode)
-- `clipService` — ffmpeg watermark overlay (v1)
-- `exifService`, `copyrightService`, `watermarkService`
-- `aspectRatio`, `aspectBucket`
-- `presetService` — `graphy-presets.json`
+```bash
+npm install @at-flux/graphy-toolkit-core
+```
 
-## Actions
+```ts
+import { stillsReleaseAction, pickAspectBucket } from '@at-flux/graphy-toolkit-core';
 
-| Action | Description |
-|--------|-------------|
-| `stills/size` | Orient, bucket, main + thumbs |
-| `stills/watermark` | Watermark + EXIF merge + write |
-| `stills/release` | Chain size → watermark |
-| `clips/watermark` | ffmpeg overlay only |
+await stillsReleaseAction.run({
+  sourceRoot: '/photos',
+  distRoot: '/out',
+  watermarkPath: '/brand.svg',
+}, {});
+```
 
-Each action exposes Zod `inputSchema` / `outputSchema`.
+## Modules
+
+| Area | Exports |
+|------|---------|
+| Geometry | `aspectRatio`, `aspectBucket`, `pickAspectBucket` |
+| Services | `stillService`, `clipService`, `exifService`, `copyrightService`, `watermarkService`, `fsService`, `presetService` |
+| Actions | `stillsSizeAction`, `stillsWatermarkAction`, `stillsReleaseAction`, `clipsWatermarkAction` |
+| Presets | `GraphyPresetsSchema`, `loadPresetsFile` |
+
+Full CLI and preset reference: [monorepo README](../README.md).

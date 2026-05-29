@@ -1,6 +1,6 @@
 ---
 name: graphy-toolkit
-description: Run graphy stills and clip release pipelines (Sharp + ffmpeg), graphy-presets.json, and graphy install. Use when optimizing photos for web delivery, watermarking stills or clips, or setting up the graphy CLI.
+description: Run graphy stills and clip release pipelines (Sharp + ffmpeg), graphy-release.presets.json, and graphy install. Use when optimizing photos for web delivery, watermarking stills or clips, or setting up the graphy CLI.
 ---
 
 # graphy-toolkit
@@ -20,9 +20,11 @@ graphy install
 graphy install skill
 ```
 
+Auto-loads `graphy-release.presets.json` from cwd when `--presets` is omitted.
+
 ## Presets
 
-`graphy-presets.json` with `stills` and `clips` sections; per-action keys (`release`, `size`, `watermark`). CLI flags override preset values.
+`graphy-release.presets.json` — `stills.release`, `stills.size`, `stills.watermark`, `clips.watermark`. CLI flags override preset values.
 
 ## Requirements
 
@@ -32,4 +34,4 @@ graphy install skill
 
 ## Portable binary
 
-Build with `pnpm compile:graphy` (Docker). Uses Deno `compile --self-extracting` for Sharp native libs.
+`pnpm compile:graphy` — Deno `compile --self-extracting` for Sharp native libs.
