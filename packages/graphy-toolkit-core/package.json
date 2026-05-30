@@ -1,6 +1,6 @@
 {
   "name": "@at-flux/graphy-toolkit-core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Image and clip pipeline engine for graphy (Sharp, Zod, preset-driven steps)",
   "license": "MIT",
@@ -14,7 +14,10 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
