@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/at-flux/graphy-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/at-flux/graphy-toolkit/actions/workflows/ci.yml)
 
-pnpm monorepo for **graphy** — a composable still/clip release CLI built on Sharp, Zod step schemas, and Stricli.
+pnpm monorepo for **graphy** — a composable stills and clip (photo and video) processing CLI built on Sharp, Zod step schemas, and Stricli.
 
 | Package | npm | Role |
 |---------|-----|------|
