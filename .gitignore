@@ -2,9 +2,9 @@ node_modules/
 packages/*/dist/
 dist/
 .deno/
+.deno-cache/
 coverage/
 *.tgz
 .DenoCompile.*
 .graphy-extract/
 .pnpm-store/
-.deno/

@@ -15,10 +15,9 @@
     "graphy": "node packages/graphy-toolkit/dist/bin/graphy.js",
     "test:fixtures": "pnpm build && cd ../test && rm -rf dist && node ../graphy-toolkit/packages/graphy-toolkit/dist/bin/graphy.js stills && cd ../graphy-toolkit/packages/graphy-toolkit-core && node ../../scripts/verify-test-dist.mjs",
     "test:pack": "bash scripts/test-pack-local.sh",
+    "ci": "bash scripts/ci.sh",
     "release": "multi-semantic-release",
-    "compile:graphy": "bash scripts/compile-graphy-local.sh",
-    "compile:graphy:docker": "docker compose -f docker/compose.yml run --rm compile",
-    "dev:shell": "docker compose -f docker/compose.yml run --rm dev"
+    "compile:graphy": "bash scripts/compile-graphy.sh"
   },
   "devDependencies": {
     "@qiwi/multi-semantic-release": "^7.1.2",

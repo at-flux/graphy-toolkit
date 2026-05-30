@@ -39,21 +39,43 @@ jobs:
       - name: Release npm packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm exec multi-semantic-release
 
   release-binaries:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     needs: release
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compile graphy binary
-        run: docker compose -f docker/compose.yml run --rm compile
-
-      - name: Attach to GitHub Release
-        uses: softprops/action-gh-release@v2
+      - uses: pnpm/action-setup@v4
         with:
-          files: dist/bin/graphy
-          tag_name: graphy-v${{ github.run_number }}
-        continue-on-error: true
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.8.1
+          cache: true
+
+      - name: Compile graphy binary
+        env:
+          DENO_DIR: ${{ github.workspace }}/.deno-cache
+        run: bash scripts/compile-graphy.sh
+
+      - name: Attach to latest GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="$(gh release list --limit 1 --json tagName --jq '.[0].tagName')"
+          if [[ -z "$TAG" || "$TAG" == "null" ]]; then
+            echo "No GitHub release found — skipping binary upload"
+            exit 0
+          fi
+          gh release upload "$TAG" dist/bin/graphy --clobber

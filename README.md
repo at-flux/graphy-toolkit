@@ -103,8 +103,8 @@ Pipelines reference `"encoding"` even when omitted from `steps` — a built-in d
 pnpm install
 pnpm typecheck && pnpm test && pnpm build
 cd ../test && node ../graphy-toolkit/packages/graphy-toolkit/dist/bin/graphy.js stills
-docker compose -f docker/compose.yml run --rm ci
-pnpm compile:graphy
+pnpm ci              # mirrors GitHub CI test job
+pnpm compile:graphy  # Deno binary → dist/bin/graphy
 ```
 
 Dependency policy: exact versions in packages; 7-day install delay via [`minimumReleaseAge`](pnpm-workspace.yaml) in `pnpm-workspace.yaml` (pnpm workspace config, not npm).
