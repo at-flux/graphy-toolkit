@@ -36,15 +36,37 @@ cd "$WORK"
 npm init -y >/dev/null 2>&1
 npm install "$CORE_TGZ" "$CLI_TGZ" >/dev/null 2>&1
 
-FIXTURE="$ROOT/../test"
+# Prefer sibling battle-test fixtures locally; fall back to bundled pack-smoke fixtures (CI).
+if [[ -d "$ROOT/../test/images" && -f "$ROOT/../test/graphy-release.presets.json" ]]; then
+  FIXTURE="$ROOT/../test"
+  SOURCE="./images/P1017123.JPG"
+else
+  FIXTURE="$STAGING/fixture"
+  mkdir -p "$FIXTURE/images"
+  cp "$ROOT/fixtures/pack-smoke/graphy-release.presets.json" "$FIXTURE/"
+  SOURCE="./images/sample.jpg"
+  (cd "$WORK" && FIXTURE="$FIXTURE" node - <<'NODE'
+const sharp = require('sharp');
+const path = require('path');
+const fixture = process.env.FIXTURE;
+sharp({
+  create: { width: 300, height: 200, channels: 3, background: { r: 100, g: 150, b: 200 } },
+})
+  .jpeg({ quality: 90 })
+  .toFile(path.join(fixture, 'images/sample.jpg'));
+NODE
+)
+fi
+
 OUT="$STAGING/out"
 (
   cd "$FIXTURE"
   "$WORK/node_modules/.bin/graphy" stills \
-    --source "./images/P1017123.JPG" \
+    --source "$SOURCE" \
     --dist "$OUT" \
-    --pipeline release
+    --pipeline release \
+    --quiet
 )
 
-test "$(ls "$OUT" | wc -l)" -eq 1
+test "$(find "$OUT" -type f | wc -l)" -eq 1
 echo "pack smoke ok: 1 release file in $OUT"

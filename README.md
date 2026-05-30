@@ -107,6 +107,8 @@ pnpm ci              # mirrors GitHub CI test job
 pnpm compile:graphy  # Deno binary → dist/bin/graphy
 ```
 
+Node **24** (see `.nvmrc`): `nvm install && nvm use`
+
 Dependency policy: exact versions in packages; 7-day install delay via [`minimumReleaseAge`](pnpm-workspace.yaml) in `pnpm-workspace.yaml` (pnpm workspace config, not npm).
 
 ## Release

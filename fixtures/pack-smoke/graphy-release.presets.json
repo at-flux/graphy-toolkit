@@ -1,0 +1,23 @@
+{
+  "stills": {
+    "sourceRoot": "./images",
+    "distRoot": "./dist",
+    "steps": {
+      "3x2": {
+        "type": "resize",
+        "width": 300,
+        "height": 200,
+        "scale": "fit"
+      },
+      "aspect-suffix": {
+        "type": "filename",
+        "suffix": "{aspect_ratio}"
+      },
+      "encoding": {
+        "type": "encoding",
+        "jpegQuality": 84
+      }
+    },
+    "pipelines": [{ "name": "release", "steps": ["3x2", "aspect-suffix", "encoding"] }]
+  }
+}
