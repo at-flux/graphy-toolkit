@@ -1,6 +1,6 @@
 {
   "name": "@at-flux/graphy-toolkit",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "CLI for still and clip release pipelines (graphy)",
   "license": "MIT",
@@ -27,7 +27,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@at-flux/graphy-toolkit-core": "workspace:*",
+    "@at-flux/graphy-toolkit-core": "1.0.0",
     "@stricli/core": "1.2.7",
     "zod": "3.25.76"
   },
