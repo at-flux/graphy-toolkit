@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/at-flux/graphy-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/at-flux/graphy-toolkit/actions/workflows/ci.yml)
 
-pnpm monorepo for **graphy** — a composable stills and clip (photo and video) processing CLI built on Sharp, Zod step schemas, and Stricli.
+pnpm monorepo for **graphy** — a composable stills and clip (image and video) processing CLI built on Sharp, Zod step schemas, and Stricli.
 
 | Package | npm | Role |
 |---------|-----|------|
@@ -95,7 +95,7 @@ Parallel branches: use a step array, e.g. `["1x1", "3x1"]` runs both resize step
 
 Pipelines reference `"encoding"` even when omitted from `steps` — a built-in default applies.
 
-Clips presets may use legacy `mappings` (merged into `steps`) and shorthand `pipelines: [["watermark"]]`.
+`clips` uses the same `steps` + `pipelines` shape; clip pipelines currently support `watermark` steps (requires ffmpeg on PATH).
 
 ## Development
 
