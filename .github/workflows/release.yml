@@ -62,7 +62,14 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.8.1
-          cache: true
+
+      - name: Cache Deno compile dir
+        uses: actions/cache@v4
+        with:
+          path: .deno-cache
+          key: ${{ runner.os }}-deno-cache-${{ hashFiles('pnpm-lock.yaml', 'packages/graphy-toolkit/package.json', 'packages/graphy-toolkit-core/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-cache-
 
       - name: Compile graphy binary
         env:
