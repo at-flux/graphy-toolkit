@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+node -e "const v=process.versions.node.split('.')[0]; if (v!=='24') { console.error('Expected Node 24 (see .nvmrc), got', process.version); process.exit(1) }"
+
 CI=true pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm build

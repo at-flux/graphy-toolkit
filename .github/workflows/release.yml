@@ -16,18 +16,22 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          fetch-tags: true
 
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           registry-url: 'https://registry.npmjs.org'
+
+      - uses: pnpm/action-setup@v5
+        with:
+          run_install: false
+
+      - name: Verify Node.js version
+        run: node --version && node -e "const v=process.versions.node.split('.')[0]; if (v!=='24') { console.error('Expected Node 24, got', process.version); process.exit(1) }"
 
       - run: |
           npm install -g npm@^11.5.1
@@ -49,15 +53,18 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
+      - name: Verify Node.js version
+        run: node --version && node -e "const v=process.versions.node.split('.')[0]; if (v!=='24') { console.error('Expected Node 24, got', process.version); process.exit(1) }"
 
       - uses: denoland/setup-deno@v2
         with:
