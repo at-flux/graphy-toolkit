@@ -15,6 +15,7 @@
     "graphy": "node packages/graphy-toolkit/dist/bin/graphy.js",
     "test:fixtures": "pnpm build && cd ../test && rm -rf dist && node ../graphy-toolkit/packages/graphy-toolkit/dist/bin/graphy.js stills && cd ../graphy-toolkit/packages/graphy-toolkit-core && node ../../scripts/verify-test-dist.mjs",
     "test:pack": "bash scripts/test-pack-local.sh",
+    "test:dlx": "bash scripts/verify-published-dlx.sh",
     "ci": "bash scripts/ci.sh",
     "release": "multi-semantic-release",
     "compile:graphy": "bash scripts/compile-graphy.sh"
@@ -25,10 +26,10 @@
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^12.0.6",
-    "@semantic-release/release-notes-generator": "^14.1.0",
-    "prettier": "^3.2.5",
-    "semantic-release": "^25.0.3",
-    "typescript": "^5.9.3"
+    "@semantic-release/github": "12.0.8",
+    "@semantic-release/release-notes-generator": "14.1.1",
+    "prettier": "3.8.3",
+    "semantic-release": "25.0.3",
+    "typescript": "5.9.3"
   }
 }
