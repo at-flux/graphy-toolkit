@@ -1,3 +1,10 @@
+## @at-flux/graphy-toolkit-core [1.0.1](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit-core@1.0.0...@at-flux/graphy-toolkit-core@1.0.1) (2026-06-01)
+
+
+### Bug Fixes
+
+* **ci:** install Node 24 before pnpm in all workflows ([8d21e7e](https://github.com/at-flux/graphy-toolkit/commit/8d21e7e114267d9dd00188e24e4a6ad30e499b28))
+
 # @at-flux/graphy-toolkit-core 1.0.0 (2026-05-30)
 
 

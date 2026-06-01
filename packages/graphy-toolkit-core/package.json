@@ -1,6 +1,6 @@
 {
   "name": "@at-flux/graphy-toolkit-core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Image and clip pipeline engine for graphy (Sharp, Zod, preset-driven steps)",
   "license": "MIT",
