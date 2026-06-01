@@ -29,7 +29,7 @@ jobs:
         run: echo "STORE_PATH=$(pnpm store path)" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -66,7 +66,7 @@ jobs:
         run: echo "STORE_PATH=$(pnpm store path)" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -74,7 +74,7 @@ jobs:
             ${{ runner.os }}-pnpm-
 
       - name: Cache Deno compile dir
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .deno-cache
           key: ${{ runner.os }}-deno-cache-${{ hashFiles('pnpm-lock.yaml', 'packages/graphy-toolkit/package.json', 'packages/graphy-toolkit-core/package.json') }}
@@ -87,7 +87,7 @@ jobs:
         run: bash scripts/compile-graphy.sh
 
       - name: Upload graphy binary artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: graphy-linux-x64
           path: dist/bin/graphy
