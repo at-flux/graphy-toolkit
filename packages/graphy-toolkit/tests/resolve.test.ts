@@ -13,7 +13,7 @@ describe.skipIf(!hasFixtures)('resolveMedia', () => {
     const resolved = await resolveMedia({}, fixtureRoot, 'stills');
     expect(resolved.settings.pipelines).toContain('release');
     expect(resolved.settings.watermark?.path).toContain('brand.svg');
-    expect(resolved.settings.jpegQuality).toBe(84);
+    expect(resolved.settings.jpegQuality).toBe(95);
     expect(resolved.settings.copyright).toBe('atflux');
     expect(resolved.source.files.length).toBeGreaterThan(0);
   });

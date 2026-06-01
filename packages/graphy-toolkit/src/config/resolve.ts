@@ -9,6 +9,7 @@ import {
   VIDEO_REGEX,
   type GraphyPresets,
   type MediaSection,
+  type Pipeline,
   type ResolvedSource,
 } from '@at-flux/graphy-toolkit-core';
 
@@ -57,7 +58,7 @@ export async function resolveMedia(
 
   let pipelines = raw.pipelines;
   if (flags.pipeline) {
-    pipelines = raw.pipelines.filter((p) => p.name === flags.pipeline);
+    pipelines = raw.pipelines.filter((p: Pipeline) => p.name === flags.pipeline);
     if (pipelines.length === 0) {
       throw new Error(`Unknown pipeline "${flags.pipeline}" in ${kind} presets`);
     }
