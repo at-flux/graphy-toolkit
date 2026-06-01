@@ -1,3 +1,10 @@
+## @at-flux/graphy-toolkit [1.0.2](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.1...@at-flux/graphy-toolkit@1.0.2) (2026-06-01)
+
+
+### Bug Fixes
+
+* **cli:** satisfy TS 6 and align resolve test with presets ([2f9c43c](https://github.com/at-flux/graphy-toolkit/commit/2f9c43cca80b4729bbd5623407689b7c2a6251fc))
+
 ## @at-flux/graphy-toolkit [1.0.1](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.0...@at-flux/graphy-toolkit@1.0.1) (2026-06-01)
 
 
