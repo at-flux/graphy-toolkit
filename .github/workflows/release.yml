@@ -40,6 +40,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm build
+
       - name: Release npm packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

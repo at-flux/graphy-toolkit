@@ -18,6 +18,7 @@
   ],
   "scripts": {
     "build": "node -e \"const fs=require('fs');const p='dist/commands/stills-run.js';if(fs.existsSync(p))fs.unlinkSync(p);\" && tsc -p tsconfig.build.json",
+    "prebuild": "pnpm --filter @at-flux/graphy-toolkit-core run build",
     "graphy": "node dist/bin/graphy.js",
     "bundle": "esbuild src/bin/graphy.ts --bundle --platform=node --format=esm --outfile=dist/bundle/graphy.mjs --external:sharp --alias:@at-flux/graphy-toolkit-core=../graphy-toolkit-core/dist/index.js --banner:js=\"#!/usr/bin/env node\"",
     "bundle:deno": "esbuild src/bin/graphy.ts --bundle --platform=node --format=esm --outfile=dist/bundle/graphy-deno.mjs --packages=external --alias:@at-flux/graphy-toolkit-core=../graphy-toolkit-core/dist/index.js",
