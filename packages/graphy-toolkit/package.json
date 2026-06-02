@@ -24,6 +24,8 @@
     "bundle:deno": "esbuild src/bin/graphy.ts --bundle --platform=node --format=esm --outfile=dist/bundle/graphy-deno.mjs --packages=external --alias:@at-flux/graphy-toolkit-core=../graphy-toolkit-core/dist/index.js",
     "dev": "tsx src/bin/graphy.ts",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
     "test": "pnpm run build && vitest run",
     "prepublishOnly": "pnpm run build"
   },

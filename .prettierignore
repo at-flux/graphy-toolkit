@@ -1,0 +1,7 @@
+node_modules
+dist
+.deno-cache
+coverage
+pnpm-lock.yaml
+**/*.tgz
+fixtures/pack-smoke/dist
