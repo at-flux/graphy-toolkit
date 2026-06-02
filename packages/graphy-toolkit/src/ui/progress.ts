@@ -1,12 +1,15 @@
-import path from 'node:path';
-import type { ProgressCallback } from '@at-flux/graphy-toolkit-core';
-import { bold, dim } from './ansi.js';
+import path from "node:path";
+import type { ProgressCallback } from "@at-flux/graphy-toolkit-core";
+import { bold, dim } from "./ansi.js";
 
 const BAR_WIDTH = 28;
 
 function bar(ratio: number): string {
-  const filled = Math.min(BAR_WIDTH, Math.max(0, Math.round(ratio * BAR_WIDTH)));
-  return `[${'█'.repeat(filled)}${'░'.repeat(BAR_WIDTH - filled)}]`;
+  const filled = Math.min(
+    BAR_WIDTH,
+    Math.max(0, Math.round(ratio * BAR_WIDTH)),
+  );
+  return `[${"█".repeat(filled)}${"░".repeat(BAR_WIDTH - filled)}]`;
 }
 
 function formatElapsed(ms: number): string {
@@ -31,26 +34,31 @@ export function createProgressHandler(options: ProgressOptions): {
   startedAt: number;
 } {
   const startedAt = Date.now();
-  let total = 0;
-  let completed = 0;
-  let currentFile = '';
-  let currentPipeline = '';
+  const pipelineNames = options.pipelineNames;
+  const nameWidth = Math.max(8, ...pipelineNames.map((n) => n.length));
+  const completedByPipeline = new Map(pipelineNames.map((n) => [n, 0]));
+  const activePipelines = new Set<string>();
+
+  let totalFiles = 0;
+  let currentFile = "";
   let linesDrawn = 0;
 
   function render(): void {
-    if (total === 0) return;
+    if (totalFiles === 0) return;
 
-    const ratio = completed / total;
-    const rows: string[] = [];
+    const rows: string[] = [dim(options.label)];
 
     if (currentFile) {
-      rows.push(`  ${dim('file')}      ${bold(path.basename(currentFile))}`);
+      rows.push(`  ${dim("file")} ${bold(path.basename(currentFile))}`);
     }
-    if (options.pipelineNames.length > 0) {
-      const pipeline = currentPipeline || options.pipelineNames.join(', ');
-      rows.push(`  ${dim('pipeline')} ${pipeline}`);
+
+    for (const name of pipelineNames) {
+      const completed = completedByPipeline.get(name) ?? 0;
+      const ratio = completed / totalFiles;
+      const padded = name.padEnd(nameWidth);
+      const label = activePipelines.has(name) ? bold(padded) : dim(padded);
+      rows.push(`  ${label} ${bar(ratio)} ${completed}/${totalFiles}`);
     }
-    rows.push(`${options.label} ${bar(ratio)} ${completed}/${total}`);
 
     if (linesDrawn > 0) {
       process.stderr.write(`\x1b[${linesDrawn}F`);
@@ -65,38 +73,50 @@ export function createProgressHandler(options: ProgressOptions): {
     if (linesDrawn === 0) return;
     process.stderr.write(`\x1b[${linesDrawn}F`);
     for (let i = 0; i < linesDrawn; i++) {
-      process.stderr.write('\x1b[2K\n');
+      process.stderr.write("\x1b[2K\n");
     }
     process.stderr.write(`\x1b[${linesDrawn}F`);
     linesDrawn = 0;
   }
 
   const onProgress: ProgressCallback = (event) => {
-    if (event.phase === 'file') {
-      total = event.total ?? total;
+    if (event.total != null) totalFiles = event.total;
+
+    if (event.phase === "file") {
       currentFile = event.file ?? currentFile;
-      currentPipeline = '';
+      activePipelines.clear();
       render();
       return;
     }
 
-    if (event.phase === 'pipeline') {
-      total = event.total ?? total;
+    if (event.phase === "pipeline") {
       currentFile = event.file ?? currentFile;
-      currentPipeline = event.pipeline ?? currentPipeline;
+      if (event.pipeline) activePipelines.add(event.pipeline);
       render();
       return;
     }
 
-    if (event.phase === 'file-done') {
-      completed = event.completed ?? completed + 1;
-      total = event.total ?? total;
+    if (event.phase === "pipeline-done") {
       if (event.file) currentFile = event.file;
+      if (event.pipeline) {
+        activePipelines.delete(event.pipeline);
+        completedByPipeline.set(
+          event.pipeline,
+          (completedByPipeline.get(event.pipeline) ?? 0) + 1,
+        );
+      }
       render();
       return;
     }
 
-    if (event.phase === 'done') {
+    if (event.phase === "file-done") {
+      if (event.file) currentFile = event.file;
+      activePipelines.clear();
+      render();
+      return;
+    }
+
+    if (event.phase === "done") {
       clear();
     }
   };

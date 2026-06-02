@@ -1,17 +1,20 @@
-import os from 'node:os';
-import type { MediaSection } from '../schemas/presets.js';
+import os from "node:os";
+import type { MediaSection } from "../schemas/presets.js";
 import {
   DEFAULT_ENCODING_STEP,
   type Pipeline,
   type Step,
   type StepRef,
-} from '../schemas/steps.js';
-import { cloneContext, type PipelineContext } from './context.js';
-import { executeClipWatermarkStep, createClipContext } from './clip-handlers.js';
-import { createStillsContext, executeStep } from './step-handlers.js';
+} from "../schemas/steps.js";
+import { cloneContext, type PipelineContext } from "./context.js";
+import {
+  executeClipWatermarkStep,
+  createClipContext,
+} from "./clip-handlers.js";
+import { createStillsContext, executeStep } from "./step-handlers.js";
 
 export type ProgressCallback = (event: {
-  phase: 'file' | 'pipeline' | 'file-done' | 'done';
+  phase: "file" | "pipeline" | "pipeline-done" | "file-done" | "done";
   index?: number;
   total?: number;
   completed?: number;
@@ -39,8 +42,10 @@ export type RunMediaResult = {
 
 function resolveStep(name: string, steps: Record<string, Step>): Step {
   if (steps[name]) return steps[name];
-  if (name === 'encoding') return DEFAULT_ENCODING_STEP;
-  throw new Error(`Unknown step "${name}" — add it to steps in graphy-release.presets.json`);
+  if (name === "encoding") return DEFAULT_ENCODING_STEP;
+  throw new Error(
+    `Unknown step "${name}" — add it to steps in graphy-release.presets.json`,
+  );
 }
 
 async function runStepRef(
@@ -68,7 +73,9 @@ async function runStepRef(
   }
 
   const step = resolveStep(ref, steps);
-  await Promise.all(branches.map((branch) => executeStep(ref, step, branch, cwd)));
+  await Promise.all(
+    branches.map((branch) => executeStep(ref, step, branch, cwd)),
+  );
   return branches;
 }
 
@@ -78,7 +85,9 @@ async function runStillsPipeline(
   opts: RunMediaOptions,
 ): Promise<string[]> {
   const { section, cwd, sourceRoot, distRoot } = opts;
-  let branches: PipelineContext[] = [await createStillsContext(file, sourceRoot, distRoot)];
+  let branches: PipelineContext[] = [
+    await createStillsContext(file, sourceRoot, distRoot),
+  ];
   const written: string[] = [];
 
   for (const ref of pipeline.steps) {
@@ -105,8 +114,10 @@ async function runClipPipeline(
     const names = Array.isArray(ref) ? ref : [ref];
     for (const stepName of names) {
       const step = resolveStep(stepName, section.steps);
-      if (step.type !== 'watermark') {
-        throw new Error(`Clips pipeline only supports watermark steps (got ${step.type})`);
+      if (step.type !== "watermark") {
+        throw new Error(
+          `Clips pipeline only supports watermark steps (got ${step.type})`,
+        );
       }
       const out = await executeClipWatermarkStep(ctx, step, cwd);
       written.push(out);
@@ -121,14 +132,14 @@ async function runFile(
   fileIndex: number,
   totalFiles: number,
   opts: RunMediaOptions,
-  mode: 'stills' | 'clips',
-): Promise<{ written: string[]; errors: RunMediaResult['errors'] }> {
+  mode: "stills" | "clips",
+): Promise<{ written: string[]; errors: RunMediaResult["errors"] }> {
   const written: string[] = [];
-  const errors: RunMediaResult['errors'] = [];
+  const errors: RunMediaResult["errors"] = [];
 
   for (const pipeline of opts.section.pipelines) {
     opts.onProgress?.({
-      phase: 'pipeline',
+      phase: "pipeline",
       index: fileIndex + 1,
       total: totalFiles,
       file,
@@ -136,7 +147,7 @@ async function runFile(
     });
     try {
       const outs =
-        mode === 'stills'
+        mode === "stills"
           ? await runStillsPipeline(pipeline, file, opts)
           : await runClipPipeline(pipeline, file, opts);
       written.push(...outs);
@@ -144,6 +155,14 @@ async function runFile(
       const err = error instanceof Error ? error : new Error(String(error));
       errors.push({ file, pipeline: pipeline.name, error: err });
       if (opts.failFast) throw err;
+    } finally {
+      opts.onProgress?.({
+        phase: "pipeline-done",
+        index: fileIndex + 1,
+        total: totalFiles,
+        file,
+        pipeline: pipeline.name,
+      });
     }
   }
 
@@ -152,12 +171,13 @@ async function runFile(
 
 export async function runMediaPipeline(
   opts: RunMediaOptions,
-  mode: 'stills' | 'clips',
+  mode: "stills" | "clips",
 ): Promise<RunMediaResult> {
-  const concurrency = opts.concurrency ?? Math.max(2, Math.min(8, os.cpus().length));
+  const concurrency =
+    opts.concurrency ?? Math.max(2, Math.min(8, os.cpus().length));
   const files = opts.sourceFiles;
   const allWritten: string[] = [];
-  const allErrors: RunMediaResult['errors'] = [];
+  const allErrors: RunMediaResult["errors"] = [];
   let nextIndex = 0;
   let completedCount = 0;
 
@@ -166,14 +186,25 @@ export async function runMediaPipeline(
       const i = nextIndex++;
       if (i >= files.length) return;
       const file = files[i]!;
-      opts.onProgress?.({ phase: 'file', index: i + 1, total: files.length, file });
+      opts.onProgress?.({
+        phase: "file",
+        index: i + 1,
+        total: files.length,
+        file,
+      });
       try {
-        const { written, errors } = await runFile(file, i, files.length, opts, mode);
+        const { written, errors } = await runFile(
+          file,
+          i,
+          files.length,
+          opts,
+          mode,
+        );
         allWritten.push(...written);
         allErrors.push(...errors);
         completedCount++;
         opts.onProgress?.({
-          phase: 'file-done',
+          phase: "file-done",
           index: i + 1,
           total: files.length,
           completed: completedCount,
@@ -187,7 +218,7 @@ export async function runMediaPipeline(
         allErrors.push({ file, error: err });
         completedCount++;
         opts.onProgress?.({
-          phase: 'file-done',
+          phase: "file-done",
           index: i + 1,
           total: files.length,
           completed: completedCount,
@@ -200,7 +231,7 @@ export async function runMediaPipeline(
 
   await Promise.all(Array.from({ length: concurrency }, () => worker()));
 
-  opts.onProgress?.({ phase: 'done', message: 'complete' });
+  opts.onProgress?.({ phase: "done", message: "complete" });
 
   return {
     processed: files.length,
