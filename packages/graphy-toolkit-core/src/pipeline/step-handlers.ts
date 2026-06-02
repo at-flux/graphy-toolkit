@@ -25,6 +25,14 @@ import type {
 import type { PipelineContext } from "./context.js";
 import { buildOutputPath, buildStagingPath } from "./context.js";
 
+export type RunCaches = {
+  watermarkSvg: Map<string, Buffer>;
+};
+
+function watermarkCacheKey(wmPath: string, opacity: number): string {
+  return `${wmPath}\0${opacity}`;
+}
+
 function resizeAspectLabel(width: number, height: number): string {
   const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
   const g = gcd(width, height);
@@ -98,10 +106,16 @@ async function applyWatermark(
   ctx: PipelineContext,
   step: WatermarkStep,
   cwd: string,
+  caches: RunCaches,
 ): Promise<void> {
   await ensureBuffer(ctx);
   const wmPath = path.resolve(cwd, step.watermark);
-  const svg = await loadWatermarkSvg(wmPath, step.opacity);
+  const cacheKey = watermarkCacheKey(wmPath, step.opacity);
+  let svg = caches.watermarkSvg.get(cacheKey);
+  if (!svg) {
+    svg = await loadWatermarkSvg(wmPath, step.opacity);
+    caches.watermarkSvg.set(cacheKey, svg);
+  }
   const opts: WatermarkOptions = {
     opacity: step.opacity,
     sizeRatio: step.sizeRatio,
@@ -172,13 +186,14 @@ export async function executeStep(
   step: Step,
   ctx: PipelineContext,
   cwd: string,
+  caches: RunCaches,
 ): Promise<string | undefined> {
   switch (step.type) {
     case "resize":
       await applyResize(ctx, step);
       return undefined;
     case "watermark":
-      await applyWatermark(ctx, step, cwd);
+      await applyWatermark(ctx, step, cwd, caches);
       return undefined;
     case "filename":
       applyFilename(ctx, step);
