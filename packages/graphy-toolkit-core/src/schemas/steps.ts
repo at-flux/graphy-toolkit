@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const WatermarkStepSchema = z.object({
-  type: z.literal('watermark'),
+  type: z.literal("watermark"),
   watermark: z.string(),
   opacity: z.number().min(0).max(1).default(0.22),
   sizeRatio: z.number().positive().default(0.1),
@@ -9,30 +9,30 @@ export const WatermarkStepSchema = z.object({
 });
 
 export const FilenameStepSchema = z.object({
-  type: z.literal('filename'),
+  type: z.literal("filename"),
   suffix: z.string(),
 });
 
 export const ResizeStepSchema = z.object({
-  type: z.literal('resize'),
+  type: z.literal("resize"),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
-  scale: z.enum(['fit', 'crop']).default('fit'),
-  align: z.enum(['center']).default('center'),
+  scale: z.enum(["fit", "crop"]).default("fit"),
+  align: z.enum(["center"]).default("center"),
   suffix: z.string().optional(),
 });
 
 export const CopyrightStepSchema = z.object({
-  type: z.literal('copyright'),
-  copyright: z.string().default(''),
+  type: z.literal("copyright"),
+  copyright: z.string().default(""),
 });
 
 export const EncodingStepSchema = z.object({
-  type: z.literal('encoding'),
+  type: z.literal("encoding"),
   jpegQuality: z.number().int().min(1).max(100).default(84),
 });
 
-export const StepSchema = z.discriminatedUnion('type', [
+export const StepSchema = z.discriminatedUnion("type", [
   WatermarkStepSchema,
   FilenameStepSchema,
   ResizeStepSchema,
@@ -48,7 +48,9 @@ export type CopyrightStep = z.infer<typeof CopyrightStepSchema>;
 export type EncodingStep = z.infer<typeof EncodingStepSchema>;
 
 /** Default encoding step when a pipeline references "encoding" by name. */
-export const DEFAULT_ENCODING_STEP: EncodingStep = EncodingStepSchema.parse({ type: 'encoding' });
+export const DEFAULT_ENCODING_STEP: EncodingStep = EncodingStepSchema.parse({
+  type: "encoding",
+});
 
 export type StepRef = string | string[];
 

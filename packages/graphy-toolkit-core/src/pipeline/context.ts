@@ -1,5 +1,5 @@
-import path from 'node:path';
-import type { Step } from '../schemas/steps.js';
+import path from "node:path";
+import type { Step } from "../schemas/steps.js";
 
 export type PipelineContext = {
   sourcePath: string;
@@ -35,23 +35,34 @@ export function resolveOutputRelativeDir(ctx: PipelineContext): string {
 export function buildStagingPath(ctx: PipelineContext): string {
   const dir = resolveOutputRelativeDir(ctx);
   const base = resolveOutputBasename(ctx);
-  const tag = ctx.branchKey ? `-${ctx.branchKey}` : '';
+  const tag = ctx.branchKey ? `-${ctx.branchKey}` : "";
   const name = `.graphy-${base}${tag}${ctx.outputExt}`;
-  return dir === '.' ? path.join(ctx.distRoot, name) : path.join(ctx.distRoot, dir, name);
+  return dir === "."
+    ? path.join(ctx.distRoot, name)
+    : path.join(ctx.distRoot, dir, name);
 }
 export function buildOutputPath(ctx: PipelineContext): string {
   const dir = resolveOutputRelativeDir(ctx);
   const base = resolveOutputBasename(ctx);
   const branch =
-    ctx.branchKey && !ctx.suffix.includes(`-${ctx.branchKey}`) ? `-${ctx.branchKey}` : '';
+    ctx.branchKey && !ctx.suffix.includes(`-${ctx.branchKey}`)
+      ? `-${ctx.branchKey}`
+      : "";
   const name = `${base}${ctx.suffix}${branch}${ctx.outputExt}`;
-  return dir === '.' ? path.join(ctx.distRoot, name) : path.join(ctx.distRoot, dir, name);
+  return dir === "."
+    ? path.join(ctx.distRoot, name)
+    : path.join(ctx.distRoot, dir, name);
 }
 
 export type ResolvedSettings = {
   pipelines: string[];
   jpegQuality?: number;
-  watermark?: { path: string; opacity: number; sizeRatio: number; paddingRatio: number };
+  watermark?: {
+    path: string;
+    opacity: number;
+    sizeRatio: number;
+    paddingRatio: number;
+  };
   copyright?: string;
 };
 
@@ -74,8 +85,8 @@ export function collectSettings(
   for (const name of used) {
     const step = steps[name];
     if (!step) continue;
-    if (step.type === 'encoding') settings.jpegQuality = step.jpegQuality;
-    if (step.type === 'watermark') {
+    if (step.type === "encoding") settings.jpegQuality = step.jpegQuality;
+    if (step.type === "watermark") {
       settings.watermark = {
         path: step.watermark,
         opacity: step.opacity,
@@ -83,7 +94,7 @@ export function collectSettings(
         paddingRatio: step.paddingRatio,
       };
     }
-    if (step.type === 'copyright' && step.copyright.trim()) {
+    if (step.type === "copyright" && step.copyright.trim()) {
       settings.copyright = step.copyright;
     }
   }

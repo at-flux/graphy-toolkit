@@ -1,4 +1,4 @@
-import type sharp from 'sharp';
+import type sharp from "sharp";
 
 type MetadataWithCopyright = sharp.Metadata & { copyright?: string };
 

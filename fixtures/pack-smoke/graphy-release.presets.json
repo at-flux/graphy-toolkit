@@ -18,6 +18,8 @@
         "jpegQuality": 84
       }
     },
-    "pipelines": [{ "name": "release", "steps": ["3x2", "aspect-suffix", "encoding"] }]
+    "pipelines": [
+      { "name": "release", "steps": ["3x2", "aspect-suffix", "encoding"] }
+    ]
   }
 }

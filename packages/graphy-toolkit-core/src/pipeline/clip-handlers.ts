@@ -1,7 +1,7 @@
-import path from 'node:path';
-import { overlayWatermarkOnClip } from '../services/clipService.js';
-import type { WatermarkStep } from '../schemas/steps.js';
-import { buildOutputPath, type PipelineContext } from './context.js';
+import path from "node:path";
+import { overlayWatermarkOnClip } from "../services/clipService.js";
+import type { WatermarkStep } from "../schemas/steps.js";
+import { buildOutputPath, type PipelineContext } from "./context.js";
 
 export async function executeClipWatermarkStep(
   ctx: PipelineContext,
@@ -32,13 +32,13 @@ export function createClipContext(
     buffer: null,
     width: 0,
     height: 0,
-    aspectLabel: '',
-    suffix: '',
-    branchKey: '',
-    copyright: '',
+    aspectLabel: "",
+    suffix: "",
+    branchKey: "",
+    copyright: "",
     hasSourceCopyright: false,
     writtenPath: null,
-    outputExt: path.extname(sourcePath) || '.mp4',
+    outputExt: path.extname(sourcePath) || ".mp4",
     jpegQuality: 84,
   };
 }

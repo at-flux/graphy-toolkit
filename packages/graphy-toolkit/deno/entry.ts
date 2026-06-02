@@ -1,1 +1,1 @@
-import '../dist/bundle/graphy-deno.mjs';
+import "../dist/bundle/graphy-deno.mjs";

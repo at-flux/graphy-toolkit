@@ -1,7 +1,9 @@
-import sharp from 'sharp';
+import sharp from "sharp";
 
 /** Metadata after auto-orient (pixel dimensions match display). */
-export async function readMetadataAfterRotate(sourceFilePath: string): Promise<sharp.Metadata> {
+export async function readMetadataAfterRotate(
+  sourceFilePath: string,
+): Promise<sharp.Metadata> {
   return sharp(sourceFilePath).rotate().metadata();
 }
 
@@ -15,9 +17,9 @@ export function mergeOutputExif(
   hasCopyright: boolean,
   copyright: string,
 ): sharp.Sharp {
-  let out = input.keepMetadata();
+  const out = input.keepMetadata();
   const merge: Record<string, Record<string, string>> = {
-    IFD0: { Orientation: '1' },
+    IFD0: { Orientation: "1" },
     ExifIFD: {
       PixelXDimension: String(outputWidth),
       PixelYDimension: String(outputHeight),

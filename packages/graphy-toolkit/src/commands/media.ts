@@ -1,10 +1,10 @@
-import { runMediaPipeline } from '@at-flux/graphy-toolkit-core';
-import { resolveMedia, type MediaFlags } from '../config/resolve.js';
-import { createProgressHandler } from '../ui/progress.js';
-import { finishRun, startRun } from './run.js';
+import { runMediaPipeline } from "@at-flux/graphy-toolkit-core";
+import { resolveMedia, type MediaFlags } from "../config/resolve.js";
+import { createProgressHandler } from "../ui/progress.js";
+import { finishRun, startRun } from "./run.js";
 
 export async function runMediaCommand(
-  kind: 'stills' | 'clips',
+  kind: "stills" | "clips",
   flags: MediaFlags,
 ): Promise<void> {
   const cwd = process.cwd();
@@ -14,7 +14,7 @@ export async function runMediaCommand(
   const progress = quiet
     ? undefined
     : createProgressHandler({
-        label: kind === 'stills' ? 'Processing stills' : 'Processing clips',
+        label: kind === "stills" ? "Processing stills" : "Processing clips",
         pipelineNames: resolved.settings.pipelines,
       });
 

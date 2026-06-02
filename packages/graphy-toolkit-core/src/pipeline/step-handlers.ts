@@ -1,16 +1,19 @@
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import sharp from 'sharp';
-import { pickAspectBucket } from '../aspectBucket.js';
-import { hasExistingCopyright } from '../services/copyrightService.js';
-import { readMetadataAfterRotate, mergeOutputExif } from '../services/exifService.js';
-import { ensureParentDir } from '../services/fsService.js';
-import { encodeOutput } from '../services/stillService.js';
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import sharp from "sharp";
+import { pickAspectBucket } from "../aspectBucket.js";
+import { hasExistingCopyright } from "../services/copyrightService.js";
+import {
+  readMetadataAfterRotate,
+  mergeOutputExif,
+} from "../services/exifService.js";
+import { ensureParentDir } from "../services/fsService.js";
+import { encodeOutput } from "../services/stillService.js";
 import {
   compositeWatermark,
   loadWatermarkSvg,
   type WatermarkOptions,
-} from '../services/watermarkService.js';
+} from "../services/watermarkService.js";
 import type {
   CopyrightStep,
   EncodingStep,
@@ -18,9 +21,9 @@ import type {
   ResizeStep,
   Step,
   WatermarkStep,
-} from '../schemas/steps.js';
-import type { PipelineContext } from './context.js';
-import { buildOutputPath, buildStagingPath } from './context.js';
+} from "../schemas/steps.js";
+import type { PipelineContext } from "./context.js";
+import { buildOutputPath, buildStagingPath } from "./context.js";
 
 function resizeAspectLabel(width: number, height: number): string {
   const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
@@ -29,13 +32,13 @@ function resizeAspectLabel(width: number, height: number): string {
 }
 
 function resolveSuffixToken(suffix: string, ctx: PipelineContext): string {
-  return suffix.replaceAll('{aspect_ratio}', ctx.aspectLabel);
+  return suffix.replaceAll("{aspect_ratio}", ctx.aspectLabel);
 }
 
 function appendSuffix(ctx: PipelineContext, part: string): void {
   const resolved = resolveSuffixToken(part, ctx);
   if (!resolved) return;
-  if (resolved.startsWith('-')) {
+  if (resolved.startsWith("-")) {
     ctx.suffix += resolved;
   } else {
     ctx.suffix += `-${resolved}`;
@@ -51,13 +54,16 @@ async function ensureBuffer(ctx: PipelineContext): Promise<void> {
   ctx.height = info.height;
 }
 
-async function applyResize(ctx: PipelineContext, step: ResizeStep): Promise<void> {
+async function applyResize(
+  ctx: PipelineContext,
+  step: ResizeStep,
+): Promise<void> {
   await ensureBuffer(ctx);
-  const fit = step.scale === 'crop' ? 'cover' : 'inside';
+  const fit = step.scale === "crop" ? "cover" : "inside";
   let targetW = step.width;
   let targetH = step.height;
 
-  if (step.scale === 'crop') {
+  if (step.scale === "crop") {
     if (step.width === step.height) {
       const edge = Math.min(step.width, step.height, ctx.width, ctx.height);
       targetW = edge;
@@ -82,13 +88,17 @@ async function applyResize(ctx: PipelineContext, step: ResizeStep): Promise<void
   ctx.width = info.width;
   ctx.height = info.height;
   ctx.aspectLabel =
-    step.scale === 'crop'
+    step.scale === "crop"
       ? resizeAspectLabel(step.width, step.height)
       : pickAspectBucket(step.width, step.height).suffix;
   if (step.suffix) appendSuffix(ctx, step.suffix);
 }
 
-async function applyWatermark(ctx: PipelineContext, step: WatermarkStep, cwd: string): Promise<void> {
+async function applyWatermark(
+  ctx: PipelineContext,
+  step: WatermarkStep,
+  cwd: string,
+): Promise<void> {
   await ensureBuffer(ctx);
   const wmPath = path.resolve(cwd, step.watermark);
   const svg = await loadWatermarkSvg(wmPath, step.opacity);
@@ -98,7 +108,13 @@ async function applyWatermark(ctx: PipelineContext, step: WatermarkStep, cwd: st
     paddingRatio: step.paddingRatio,
   };
   let pipeline = sharp(ctx.buffer!);
-  pipeline = await compositeWatermark(pipeline, svg, ctx.width, ctx.height, opts);
+  pipeline = await compositeWatermark(
+    pipeline,
+    svg,
+    ctx.width,
+    ctx.height,
+    opts,
+  );
   const { data, info } = await pipeline.toBuffer({ resolveWithObject: true });
   ctx.buffer = data;
   ctx.width = info.width;
@@ -113,7 +129,10 @@ function applyCopyright(ctx: PipelineContext, step: CopyrightStep): void {
   ctx.copyright = step.copyright;
 }
 
-async function applyEncoding(ctx: PipelineContext, step: EncodingStep): Promise<string> {
+async function applyEncoding(
+  ctx: PipelineContext,
+  step: EncodingStep,
+): Promise<string> {
   await ensureBuffer(ctx);
   ctx.jpegQuality = step.jpegQuality;
   const outPath = buildStagingPath(ctx);
@@ -155,24 +174,26 @@ export async function executeStep(
   cwd: string,
 ): Promise<string | undefined> {
   switch (step.type) {
-    case 'resize':
+    case "resize":
       await applyResize(ctx, step);
       return undefined;
-    case 'watermark':
+    case "watermark":
       await applyWatermark(ctx, step, cwd);
       return undefined;
-    case 'filename':
+    case "filename":
       applyFilename(ctx, step);
       if (ctx.writtenPath) await renameWritten(ctx);
       return undefined;
-    case 'copyright':
+    case "copyright":
       applyCopyright(ctx, step);
       return undefined;
-    case 'encoding':
+    case "encoding":
       return applyEncoding(ctx, step);
     default: {
       const _exhaustive: never = step;
-      throw new Error(`Unsupported step type for stills: ${(_exhaustive as Step).type}`);
+      throw new Error(
+        `Unsupported step type for stills: ${(_exhaustive as Step).type}`,
+      );
     }
   }
 }
@@ -193,12 +214,12 @@ export async function createStillsContext(
     width: w,
     height: h,
     aspectLabel: pickAspectBucket(w, h).suffix,
-    suffix: '',
-    branchKey: '',
-    copyright: '',
+    suffix: "",
+    branchKey: "",
+    copyright: "",
     hasSourceCopyright: hasExistingCopyright(meta),
     writtenPath: null,
-    outputExt: path.extname(sourcePath) || '.JPG',
+    outputExt: path.extname(sourcePath) || ".JPG",
     jpegQuality: 84,
   };
 }

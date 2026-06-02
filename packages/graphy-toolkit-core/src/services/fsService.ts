@@ -1,7 +1,7 @@
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import fg from 'fast-glob';
-import { IMAGE_REGEX } from './stillService.js';
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import fg from "fast-glob";
+import { IMAGE_REGEX } from "./stillService.js";
 
 export type ResolvedSource = {
   /** Directory used as the root for mirrored output paths */
@@ -38,12 +38,12 @@ export async function resolveSourceSpec(
   fileFilter: RegExp = IMAGE_REGEX,
 ): Promise<ResolvedSource> {
   const trimmed = source.trim();
-  if (!trimmed) throw new Error('Source path or glob is required');
+  if (!trimmed) throw new Error("Source path or glob is required");
 
   if (GLOB_CHARS.test(trimmed)) {
-    const files = (await fg(trimmed, { cwd, absolute: true, onlyFiles: true, dot: false })).filter(
-      (f) => fileFilter.test(f),
-    );
+    const files = (
+      await fg(trimmed, { cwd, absolute: true, onlyFiles: true, dot: false })
+    ).filter((f) => fileFilter.test(f));
     if (files.length === 0) {
       throw new Error(`No files matched source glob: ${trimmed}`);
     }
@@ -98,18 +98,20 @@ export function buildMirroredOutputPath(
   const relativePath = path.relative(sourceRoot, sourceFilePath);
   const ext = path.extname(relativePath);
   const extlessPath = relativePath.slice(0, -ext.length);
-  const markedSuffix = marked ? '' : '-unmarked';
+  const markedSuffix = marked ? "" : "-unmarked";
   const outRelativePath = `${extlessPath}-${variantSuffix}${markedSuffix}${ext}`;
   return path.join(distRoot, outRelativePath);
 }
 
 /** Default preset filenames checked in cwd (first match wins). */
 export const DEFAULT_PRESET_FILENAMES = [
-  'graphy-release.presets.json',
-  'graphy-presets.json',
+  "graphy-release.presets.json",
+  "graphy-presets.json",
 ] as const;
 
-export async function findDefaultPresetsFile(cwd: string): Promise<string | undefined> {
+export async function findDefaultPresetsFile(
+  cwd: string,
+): Promise<string | undefined> {
   for (const name of DEFAULT_PRESET_FILENAMES) {
     const candidate = path.join(cwd, name);
     try {

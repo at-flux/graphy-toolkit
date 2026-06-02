@@ -1,6 +1,6 @@
-import sharp from 'sharp';
-import type { AspectBucket } from '../aspectBucket.js';
-import { THUMB_1X1_MAX_EDGE } from '../aspectBucket.js';
+import sharp from "sharp";
+import type { AspectBucket } from "../aspectBucket.js";
+import { THUMB_1X1_MAX_EDGE } from "../aspectBucket.js";
 
 export const IMAGE_REGEX = /\.(jpe?g|png|webp|tiff?|avif)$/i;
 
@@ -23,13 +23,19 @@ export function encodeOutput(
   options: EncodeQualityOptions,
 ): sharp.Sharp {
   const ext = outputPath.toLowerCase();
-  if (ext.endsWith('.png')) {
-    return input.png({ quality: options.pngQuality, compressionLevel: 9, adaptiveFiltering: true });
+  if (ext.endsWith(".png")) {
+    return input.png({
+      quality: options.pngQuality,
+      compressionLevel: 9,
+      adaptiveFiltering: true,
+    });
   }
-  if (ext.endsWith('.webp')) return input.webp({ quality: options.webpQuality });
-  if (ext.endsWith('.avif')) return input.avif({ quality: options.avifQuality });
-  if (ext.endsWith('.tif') || ext.endsWith('.tiff')) {
-    return input.tiff({ quality: options.jpegQuality, compression: 'jpeg' });
+  if (ext.endsWith(".webp"))
+    return input.webp({ quality: options.webpQuality });
+  if (ext.endsWith(".avif"))
+    return input.avif({ quality: options.avifQuality });
+  if (ext.endsWith(".tif") || ext.endsWith(".tiff")) {
+    return input.tiff({ quality: options.jpegQuality, compression: "jpeg" });
   }
   return input.jpeg({ quality: options.jpegQuality, mozjpeg: true });
 }
@@ -50,7 +56,7 @@ export async function renderMainScaled(
     .resize({
       width: bucket.maxW,
       height: bucket.maxH,
-      fit: 'inside',
+      fit: "inside",
       withoutEnlargement: true,
     })
     .keepMetadata()
@@ -78,7 +84,7 @@ export async function renderThumb1x1(mainBuffer: Buffer): Promise<ScaledThumb> {
   const edge = Math.min(THUMB_1X1_MAX_EDGE, Math.min(mw, mh));
   const pipeline = sharp(mainBuffer)
     .keepMetadata()
-    .resize({ width: edge, height: edge, fit: 'cover', position: 'centre' })
+    .resize({ width: edge, height: edge, fit: "cover", position: "centre" })
     .jpeg(intermediateJpegOptions());
   const { data, info } = await pipeline.toBuffer({ resolveWithObject: true });
   return { buffer: data, width: info.width, height: info.height };
@@ -94,8 +100,8 @@ export async function renderThumb3x1(mainBuffer: Buffer): Promise<ScaledThumb> {
     .resize({
       width: thumbW,
       height: thumbH,
-      fit: 'cover',
-      position: 'centre',
+      fit: "cover",
+      position: "centre",
     })
     .jpeg(intermediateJpegOptions());
   const { data, info } = await pipeline.toBuffer({ resolveWithObject: true });

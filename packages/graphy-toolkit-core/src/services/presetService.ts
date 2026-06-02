@@ -1,8 +1,10 @@
-import { promises as fs } from 'node:fs';
-import { GraphyPresetsSchema, type GraphyPresets } from '../schemas/presets.js';
+import { promises as fs } from "node:fs";
+import { GraphyPresetsSchema, type GraphyPresets } from "../schemas/presets.js";
 
-export async function loadPresetsFile(presetsPath: string): Promise<GraphyPresets> {
-  const raw = await fs.readFile(presetsPath, 'utf8');
+export async function loadPresetsFile(
+  presetsPath: string,
+): Promise<GraphyPresets> {
+  const raw = await fs.readFile(presetsPath, "utf8");
   const json: unknown = JSON.parse(raw);
   return GraphyPresetsSchema.parse(json);
 }

@@ -1,5 +1,5 @@
-import { promises as fs } from 'node:fs';
-import sharp from 'sharp';
+import { promises as fs } from "node:fs";
+import sharp from "sharp";
 
 export type WatermarkOptions = {
   opacity: number;
@@ -11,9 +11,9 @@ export async function loadWatermarkSvg(
   watermarkPath: string,
   opacity: number,
 ): Promise<Buffer> {
-  const svgRaw = await fs.readFile(watermarkPath, 'utf8');
-  const withOpacity = svgRaw.replace('<svg ', `<svg opacity="${opacity}" `);
-  return Buffer.from(withOpacity, 'utf8');
+  const svgRaw = await fs.readFile(watermarkPath, "utf8");
+  const withOpacity = svgRaw.replace("<svg ", `<svg opacity="${opacity}" `);
+  return Buffer.from(withOpacity, "utf8");
 }
 
 export async function compositeWatermark(
@@ -23,7 +23,10 @@ export async function compositeWatermark(
   height: number,
   options: WatermarkOptions,
 ): Promise<sharp.Sharp> {
-  const margin = Math.max(12, Math.round(Math.min(width, height) * options.paddingRatio));
+  const margin = Math.max(
+    12,
+    Math.round(Math.min(width, height) * options.paddingRatio),
+  );
   const maxWatermarkWidth = Math.max(1, width - margin * 2);
   const maxWatermarkHeight = Math.max(1, height - margin * 2);
   const requestedWidth = Math.max(64, Math.round(width * options.sizeRatio));
@@ -33,7 +36,7 @@ export async function compositeWatermark(
     .resize({
       width: Math.min(maxWatermarkWidth, requestedWidth),
       height: Math.min(maxWatermarkHeight, requestedHeight),
-      fit: 'inside',
+      fit: "inside",
       withoutEnlargement: false,
     })
     .png()
@@ -43,7 +46,7 @@ export async function compositeWatermark(
     .resize({
       width: maxWatermarkWidth,
       height: maxWatermarkHeight,
-      fit: 'inside',
+      fit: "inside",
       withoutEnlargement: true,
     })
     .png()

@@ -1,5 +1,5 @@
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import {
   collectSettings,
   findDefaultPresetsFile,
@@ -11,7 +11,7 @@ import {
   type MediaSection,
   type Pipeline,
   type ResolvedSource,
-} from '@at-flux/graphy-toolkit-core';
+} from "@at-flux/graphy-toolkit-core";
 
 export type MediaFlags = {
   source?: string;
@@ -31,7 +31,10 @@ export type ResolvedMedia = {
   settings: ReturnType<typeof collectSettings>;
 };
 
-async function loadPresets(flags: MediaFlags, cwd: string): Promise<{
+async function loadPresets(
+  flags: MediaFlags,
+  cwd: string,
+): Promise<{
   presets?: GraphyPresets;
   presetsPath?: string;
 }> {
@@ -46,7 +49,7 @@ async function loadPresets(flags: MediaFlags, cwd: string): Promise<{
 export async function resolveMedia(
   flags: MediaFlags,
   cwd: string,
-  kind: 'stills' | 'clips',
+  kind: "stills" | "clips",
 ): Promise<ResolvedMedia> {
   const { presets, presetsPath } = await loadPresets(flags, cwd);
   const raw = presets?.[kind];
@@ -58,9 +61,13 @@ export async function resolveMedia(
 
   let pipelines = raw.pipelines;
   if (flags.pipeline) {
-    pipelines = raw.pipelines.filter((p: Pipeline) => p.name === flags.pipeline);
+    pipelines = raw.pipelines.filter(
+      (p: Pipeline) => p.name === flags.pipeline,
+    );
     if (pipelines.length === 0) {
-      throw new Error(`Unknown pipeline "${flags.pipeline}" in ${kind} presets`);
+      throw new Error(
+        `Unknown pipeline "${flags.pipeline}" in ${kind} presets`,
+      );
     }
   }
 
@@ -72,7 +79,7 @@ export async function resolveMedia(
   };
 
   const sourceSpec = section.sourceRoot;
-  const fileFilter = kind === 'clips' ? VIDEO_REGEX : IMAGE_REGEX;
+  const fileFilter = kind === "clips" ? VIDEO_REGEX : IMAGE_REGEX;
   const source = await resolveSourceSpec(sourceSpec, cwd, fileFilter);
   const distRoot = path.resolve(cwd, section.distRoot);
 

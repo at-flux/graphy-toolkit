@@ -4,10 +4,10 @@
 
 pnpm monorepo for **graphy** — a composable stills and clip (image and video) processing CLI built on Sharp, Zod step schemas, and Stricli.
 
-| Package | npm | Role |
-|---------|-----|------|
+| Package                                                         | npm                                                                                                                             | Role                                 |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | [`@at-flux/graphy-toolkit-core`](packages/graphy-toolkit-core/) | [![npm](https://img.shields.io/npm/v/@at-flux/graphy-toolkit-core)](https://www.npmjs.com/package/@at-flux/graphy-toolkit-core) | Pipeline engine + services (library) |
-| [`@at-flux/graphy-toolkit`](packages/graphy-toolkit/) | [![npm](https://img.shields.io/npm/v/@at-flux/graphy-toolkit)](https://www.npmjs.com/package/@at-flux/graphy-toolkit) | `graphy` CLI |
+| [`@at-flux/graphy-toolkit`](packages/graphy-toolkit/)           | [![npm](https://img.shields.io/npm/v/@at-flux/graphy-toolkit)](https://www.npmjs.com/package/@at-flux/graphy-toolkit)           | `graphy` CLI                         |
 
 ## Quick start
 
@@ -39,23 +39,23 @@ pnpm test            # includes dist-old parity integration when fixtures exist
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `graphy stills` | Run stills pipelines from presets (release, thumbnails, …) |
-| `graphy clips` | Run clip pipelines (ffmpeg watermark overlay) |
-| `graphy install` | Install agent skill + copy binary to `~/.local/bin` |
-| `graphy install skill` | Agent skill only |
+| Command                | Description                                                |
+| ---------------------- | ---------------------------------------------------------- |
+| `graphy stills`        | Run stills pipelines from presets (release, thumbnails, …) |
+| `graphy clips`         | Run clip pipelines (ffmpeg watermark overlay)              |
+| `graphy install`       | Install agent skill + copy binary to `~/.local/bin`        |
+| `graphy install skill` | Agent skill only                                           |
 
 ### CLI flags (`stills`, `clips`)
 
-| Flag | Preset key | Description |
-|------|------------|-------------|
-| `--source <path\|glob>` | `sourceRoot` | Directory, file, or glob (`./images`, `./images/*.JPG`) |
-| `--dist <dir>` | `distRoot` | Output root; mirrors paths relative to source root |
-| `--presets <file>` | — | Presets JSON (default: `graphy-release.presets.json` in cwd) |
-| `--pipeline <name>` | — | Run only one named pipeline from presets |
-| `--quiet` | `quiet` | Suppress progress UI; stdout summary only |
-| `--fail-fast` | — | Stop on first file/pipeline error |
+| Flag                    | Preset key   | Description                                                  |
+| ----------------------- | ------------ | ------------------------------------------------------------ |
+| `--source <path\|glob>` | `sourceRoot` | Directory, file, or glob (`./images`, `./images/*.JPG`)      |
+| `--dist <dir>`          | `distRoot`   | Output root; mirrors paths relative to source root           |
+| `--presets <file>`      | —            | Presets JSON (default: `graphy-release.presets.json` in cwd) |
+| `--pipeline <name>`     | —            | Run only one named pipeline from presets                     |
+| `--quiet`               | `quiet`      | Suppress progress UI; stdout summary only                    |
+| `--fail-fast`           | —            | Stop on first file/pipeline error                            |
 
 Progress and applied settings go to stderr; the final line on stdout is `done: N input(s), M file(s) written`.
 
@@ -69,13 +69,21 @@ Presets define reusable **steps** (a dictionary) and **pipelines** that referenc
     "sourceRoot": "./images",
     "distRoot": "./dist",
     "steps": {
-      "3x2": { "type": "resize", "width": 3240, "height": 2160, "scale": "fit" },
+      "3x2": {
+        "type": "resize",
+        "width": 3240,
+        "height": 2160,
+        "scale": "fit"
+      },
       "watermark": { "type": "watermark", "watermark": "./brand.svg" },
       "encoding": { "type": "encoding", "jpegQuality": 84 },
       "aspect-suffix": { "type": "filename", "suffix": "{aspect_ratio}" }
     },
     "pipelines": [
-      { "name": "release", "steps": ["3x2", "watermark", "encoding", "aspect-suffix"] }
+      {
+        "name": "release",
+        "steps": ["3x2", "watermark", "encoding", "aspect-suffix"]
+      }
     ]
   }
 }
@@ -83,13 +91,13 @@ Presets define reusable **steps** (a dictionary) and **pipelines** that referenc
 
 ### Step types
 
-| Type | Purpose |
-|------|---------|
-| `resize` | Fit or crop to width×height; sets `{aspect_ratio}` token from the target box |
-| `watermark` | SVG overlay (opacity, sizeRatio, paddingRatio) |
-| `filename` | Append suffix; supports `{aspect_ratio}` |
-| `copyright` | IFD0 Copyright/Artist when source has none |
-| `encoding` | Write JPEG/PNG/WebP/AVIF with quality; merges EXIF |
+| Type        | Purpose                                                                      |
+| ----------- | ---------------------------------------------------------------------------- |
+| `resize`    | Fit or crop to width×height; sets `{aspect_ratio}` token from the target box |
+| `watermark` | SVG overlay (opacity, sizeRatio, paddingRatio)                               |
+| `filename`  | Append suffix; supports `{aspect_ratio}`                                     |
+| `copyright` | IFD0 Copyright/Artist when source has none                                   |
+| `encoding`  | Write JPEG/PNG/WebP/AVIF with quality; merges EXIF                           |
 
 Parallel branches: use a step array, e.g. `["1x1", "3x1"]` runs both resize steps concurrently.
 
