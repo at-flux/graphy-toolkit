@@ -87,7 +87,7 @@ jobs:
         run: bash scripts/compile-graphy.sh
 
       - name: Upload graphy binary artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: graphy-linux-x64
           path: dist/bin/graphy
