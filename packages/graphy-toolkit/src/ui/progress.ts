@@ -3,6 +3,7 @@ import type { ProgressCallback } from "@at-flux/graphy-toolkit-core";
 import { bold, dim } from "./ansi.js";
 
 const BAR_WIDTH = 28;
+const RENDER_INTERVAL_MS = 80;
 
 function bar(ratio: number): string {
   const filled = Math.min(
@@ -42,8 +43,11 @@ export function createProgressHandler(options: ProgressOptions): {
   let totalFiles = 0;
   let currentFile = "";
   let linesDrawn = 0;
+  let renderTimer: ReturnType<typeof setTimeout> | undefined;
+  let renderPending = false;
 
-  function render(): void {
+  function renderNow(): void {
+    renderPending = false;
     if (totalFiles === 0) return;
 
     const rows: string[] = [dim(options.label)];
@@ -69,7 +73,24 @@ export function createProgressHandler(options: ProgressOptions): {
     linesDrawn = rows.length;
   }
 
+  function render(): void {
+    if (renderPending) return;
+    renderPending = true;
+    if (renderTimer) clearTimeout(renderTimer);
+    renderTimer = setTimeout(renderNow, RENDER_INTERVAL_MS);
+  }
+
+  function flushRender(): void {
+    if (renderTimer) clearTimeout(renderTimer);
+    renderTimer = undefined;
+    renderPending = false;
+    renderNow();
+  }
+
   function clear(): void {
+    if (renderTimer) clearTimeout(renderTimer);
+    renderTimer = undefined;
+    renderPending = false;
     if (linesDrawn === 0) return;
     process.stderr.write(`\x1b[${linesDrawn}F`);
     for (let i = 0; i < linesDrawn; i++) {
@@ -82,9 +103,16 @@ export function createProgressHandler(options: ProgressOptions): {
   const onProgress: ProgressCallback = (event) => {
     if (event.total != null) totalFiles = event.total;
 
+    if (event.phase === "pipeline-batch") {
+      currentFile = "";
+      activePipelines.clear();
+      if (event.pipeline) activePipelines.add(event.pipeline);
+      render();
+      return;
+    }
+
     if (event.phase === "file") {
       currentFile = event.file ?? currentFile;
-      activePipelines.clear();
       render();
       return;
     }
@@ -117,6 +145,7 @@ export function createProgressHandler(options: ProgressOptions): {
     }
 
     if (event.phase === "done") {
+      flushRender();
       clear();
     }
   };
