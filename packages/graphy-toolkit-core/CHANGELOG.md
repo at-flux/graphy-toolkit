@@ -1,9 +1,8 @@
 ## @at-flux/graphy-toolkit-core [1.0.2](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit-core@1.0.1...@at-flux/graphy-toolkit-core@1.0.2) (2026-06-02)
 
-
 ### Features
 
-* **cli:** add per-pipeline progress bars ([246b283](https://github.com/at-flux/graphy-toolkit/commit/246b2837ec7aa8bcbd88a819fdfb0c4ff8e5fee8))
+- **cli:** add per-pipeline progress bars ([246b283](https://github.com/at-flux/graphy-toolkit/commit/246b2837ec7aa8bcbd88a819fdfb0c4ff8e5fee8))
 
 ## @at-flux/graphy-toolkit-core [1.0.1](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit-core@1.0.0...@at-flux/graphy-toolkit-core@1.0.1) (2026-06-01)
 
