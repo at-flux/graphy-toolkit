@@ -1,3 +1,10 @@
+## @at-flux/graphy-toolkit [1.0.3](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.2...@at-flux/graphy-toolkit@1.0.3) (2026-06-02)
+
+
+### Bug Fixes
+
+* **release:** build core before CLI publish ([66bcbe7](https://github.com/at-flux/graphy-toolkit/commit/66bcbe78d9f01e7144209cff32a392375cd3e7e0))
+
 ## @at-flux/graphy-toolkit [1.0.2](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.1...@at-flux/graphy-toolkit@1.0.2) (2026-06-01)
 
 
