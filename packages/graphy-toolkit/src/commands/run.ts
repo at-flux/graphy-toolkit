@@ -48,7 +48,6 @@ export function startRun(command: string, resolved: ResolvedMedia): void {
     `  ${dim("pipelines")} ${settings.pipelines.join(", ")}\n`,
   );
 
-  let wroteApplied = false;
   for (const pipeline of resolved.section.pipelines) {
     const pipelineSettings = collectSettings(
       [pipeline],
@@ -56,8 +55,7 @@ export function startRun(command: string, resolved: ResolvedMedia): void {
     );
     const lines = formatAppliedLines(cwd, pipelineSettings);
     if (lines.length === 0) continue;
-    if (!wroteApplied) process.stderr.write("\n");
-    wroteApplied = true;
+    process.stderr.write("\n");
     process.stderr.write(`${dim("Applied")} ${cyan(pipeline.name)}\n`);
     for (const line of lines) {
       process.stderr.write(`  ${dim("·")} ${line}\n`);
