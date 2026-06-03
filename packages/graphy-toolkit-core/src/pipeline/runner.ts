@@ -6,18 +6,17 @@ import {
   type Step,
   type StepRef,
 } from "../schemas/steps.js";
+import {
+  createRunCaches,
+  recordFilePipelineComplete,
+  type RunCaches,
+} from "./caches.js";
 import { cloneContext, type PipelineContext } from "./context.js";
 import {
   executeClipWatermarkStep,
   createClipContext,
 } from "./clip-handlers.js";
-import {
-  createStillsContext,
-  executeStep,
-  type RunCaches,
-} from "./step-handlers.js";
-
-export type PipelineScheduling = "pipeline" | "file";
+import { createStillsContext, executeStep } from "./step-handlers.js";
 
 export type ProgressCallback = (event: {
   phase:
@@ -42,10 +41,8 @@ export type RunMediaOptions = {
   distRoot: string;
   section: MediaSection;
   failFast?: boolean;
-  /** Max files processed in parallel within a pipeline (or per file when scheduling is "file"). */
+  /** Max files processed in parallel within each pipeline. */
   concurrency?: number;
-  /** "pipeline" (default): finish each pipeline for all files before the next. "file": all pipelines per file. */
-  scheduling?: PipelineScheduling;
   onProgress?: ProgressCallback;
 };
 
@@ -70,10 +67,6 @@ function resolveStep(name: string, steps: Record<string, Step>): Step {
 
 function defaultConcurrency(opts: RunMediaOptions): number {
   return opts.concurrency ?? Math.max(2, Math.min(8, os.cpus().length));
-}
-
-function createRunCaches(): RunCaches {
-  return { watermarkSvg: new Map() };
 }
 
 async function runStepRef(
@@ -116,7 +109,7 @@ async function runStillsPipeline(
 ): Promise<string[]> {
   const { section, cwd, sourceRoot, distRoot } = opts;
   let branches: PipelineContext[] = [
-    await createStillsContext(file, sourceRoot, distRoot),
+    await createStillsContext(file, sourceRoot, distRoot, caches),
   ];
   const written: string[] = [];
 
@@ -135,6 +128,7 @@ async function runClipPipeline(
   pipeline: Pipeline,
   file: string,
   opts: RunMediaOptions,
+  caches: RunCaches,
 ): Promise<string[]> {
   const { section, cwd, sourceRoot, distRoot } = opts;
   const ctx = createClipContext(file, sourceRoot, distRoot);
@@ -149,7 +143,7 @@ async function runClipPipeline(
           `Clips pipeline only supports watermark steps (got ${step.type})`,
         );
       }
-      const out = await executeClipWatermarkStep(ctx, step, cwd);
+      const out = await executeClipWatermarkStep(ctx, step, cwd, caches);
       written.push(out);
     }
   }
@@ -178,7 +172,7 @@ async function runOneFileOnePipeline(
     const outs =
       mode === "stills"
         ? await runStillsPipeline(pipeline, file, opts, caches)
-        : await runClipPipeline(pipeline, file, opts);
+        : await runClipPipeline(pipeline, file, opts, caches);
     return { written: outs, errors: [] };
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
@@ -195,47 +189,15 @@ async function runOneFileOnePipeline(
       file,
       pipeline: pipeline.name,
     });
+    recordFilePipelineComplete(caches, file);
   }
-}
-
-async function runFileAllPipelines(
-  file: string,
-  fileIndex: number,
-  totalFiles: number,
-  opts: RunMediaOptions,
-  mode: "stills" | "clips",
-  caches: RunCaches,
-): Promise<FileRunResult> {
-  const written: string[] = [];
-  const errors: RunMediaResult["errors"] = [];
-
-  for (const pipeline of opts.section.pipelines) {
-    const result = await runOneFileOnePipeline(
-      pipeline,
-      file,
-      fileIndex,
-      totalFiles,
-      opts,
-      mode,
-      caches,
-    );
-    written.push(...result.written);
-    errors.push(...result.errors);
-  }
-
-  return { written, errors };
 }
 
 async function runFilesConcurrently(
   files: string[],
   concurrency: number,
   opts: RunMediaOptions,
-  work: (
-    file: string,
-    index: number,
-    caches: RunCaches,
-  ) => Promise<FileRunResult>,
-  caches: RunCaches,
+  work: (file: string, index: number) => Promise<FileRunResult>,
 ): Promise<{ allWritten: string[]; allErrors: RunMediaResult["errors"] }> {
   const allWritten: string[] = [];
   const allErrors: RunMediaResult["errors"] = [];
@@ -254,7 +216,7 @@ async function runFilesConcurrently(
         file,
       });
       try {
-        const { written, errors } = await work(file, i, caches);
+        const { written, errors } = await work(file, i);
         allWritten.push(...written);
         allErrors.push(...errors);
         completedCount++;
@@ -289,13 +251,13 @@ async function runFilesConcurrently(
   return { allWritten, allErrors };
 }
 
-async function runPipelineFirst(
+export async function runMediaPipeline(
   opts: RunMediaOptions,
   mode: "stills" | "clips",
-  concurrency: number,
-  caches: RunCaches,
-): Promise<{ allWritten: string[]; allErrors: RunMediaResult["errors"] }> {
+): Promise<RunMediaResult> {
+  const concurrency = defaultConcurrency(opts);
   const files = opts.sourceFiles;
+  const caches = createRunCaches(opts.section.pipelines.length);
   const allWritten: string[] = [];
   const allErrors: RunMediaResult["errors"] = [];
 
@@ -307,21 +269,16 @@ async function runPipelineFirst(
     });
 
     const { allWritten: batchWritten, allErrors: batchErrors } =
-      await runFilesConcurrently(
-        files,
-        concurrency,
-        opts,
-        (file, index) =>
-          runOneFileOnePipeline(
-            pipeline,
-            file,
-            index,
-            files.length,
-            opts,
-            mode,
-            caches,
-          ),
-        caches,
+      await runFilesConcurrently(files, concurrency, opts, (file, index) =>
+        runOneFileOnePipeline(
+          pipeline,
+          file,
+          index,
+          files.length,
+          opts,
+          mode,
+          caches,
+        ),
       );
 
     allWritten.push(...batchWritten);
@@ -331,49 +288,10 @@ async function runPipelineFirst(
     }
   }
 
-  return { allWritten, allErrors };
-}
-
-async function runFileFirst(
-  opts: RunMediaOptions,
-  mode: "stills" | "clips",
-  concurrency: number,
-  caches: RunCaches,
-): Promise<{ allWritten: string[]; allErrors: RunMediaResult["errors"] }> {
-  return runFilesConcurrently(
-    opts.sourceFiles,
-    concurrency,
-    opts,
-    (file, index, runCaches) =>
-      runFileAllPipelines(
-        file,
-        index,
-        opts.sourceFiles.length,
-        opts,
-        mode,
-        runCaches,
-      ),
-    caches,
-  );
-}
-
-export async function runMediaPipeline(
-  opts: RunMediaOptions,
-  mode: "stills" | "clips",
-): Promise<RunMediaResult> {
-  const concurrency = defaultConcurrency(opts);
-  const scheduling = opts.scheduling ?? "pipeline";
-  const caches = createRunCaches();
-
-  const { allWritten, allErrors } =
-    scheduling === "pipeline"
-      ? await runPipelineFirst(opts, mode, concurrency, caches)
-      : await runFileFirst(opts, mode, concurrency, caches);
-
   opts.onProgress?.({ phase: "done", message: "complete" });
 
   return {
-    processed: opts.sourceFiles.length,
+    processed: files.length,
     written: [...new Set(allWritten)],
     errors: allErrors,
   };

@@ -2,18 +2,14 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 import { pickAspectBucket } from "../aspectBucket.js";
-import { hasExistingCopyright } from "../services/copyrightService.js";
 import {
-  readMetadataAfterRotate,
-  mergeOutputExif,
-} from "../services/exifService.js";
-import { ensureParentDir } from "../services/fsService.js";
+  ensureOutputDir,
+  getCachedWatermarkLayer,
+  getOrLoadSource,
+  type RunCaches,
+} from "./caches.js";
+import { mergeOutputExif } from "../services/exifService.js";
 import { encodeOutput } from "../services/stillService.js";
-import {
-  compositeWatermark,
-  loadWatermarkSvg,
-  type WatermarkOptions,
-} from "../services/watermarkService.js";
 import type {
   CopyrightStep,
   EncodingStep,
@@ -25,13 +21,7 @@ import type {
 import type { PipelineContext } from "./context.js";
 import { buildOutputPath, buildStagingPath } from "./context.js";
 
-export type RunCaches = {
-  watermarkSvg: Map<string, Buffer>;
-};
-
-function watermarkCacheKey(wmPath: string, opacity: number): string {
-  return `${wmPath}\0${opacity}`;
-}
+export type { RunCaches } from "./caches.js";
 
 function resizeAspectLabel(width: number, height: number): string {
   const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
@@ -53,20 +43,23 @@ function appendSuffix(ctx: PipelineContext, part: string): void {
   }
 }
 
-async function ensureBuffer(ctx: PipelineContext): Promise<void> {
+async function ensureBuffer(
+  ctx: PipelineContext,
+  caches: RunCaches,
+): Promise<void> {
   if (ctx.buffer) return;
-  const pipeline = sharp(ctx.sourcePath).rotate().keepMetadata();
-  const { data, info } = await pipeline.toBuffer({ resolveWithObject: true });
-  ctx.buffer = data;
-  ctx.width = info.width;
-  ctx.height = info.height;
+  const source = await getOrLoadSource(ctx.sourcePath, caches);
+  ctx.buffer = Buffer.from(source.buffer);
+  ctx.width = source.width;
+  ctx.height = source.height;
 }
 
 async function applyResize(
   ctx: PipelineContext,
   step: ResizeStep,
+  caches: RunCaches,
 ): Promise<void> {
-  await ensureBuffer(ctx);
+  await ensureBuffer(ctx, caches);
   const fit = step.scale === "crop" ? "cover" : "inside";
   let targetW = step.width;
   let targetH = step.height;
@@ -108,27 +101,29 @@ async function applyWatermark(
   cwd: string,
   caches: RunCaches,
 ): Promise<void> {
-  await ensureBuffer(ctx);
+  await ensureBuffer(ctx, caches);
   const wmPath = path.resolve(cwd, step.watermark);
-  const cacheKey = watermarkCacheKey(wmPath, step.opacity);
-  let svg = caches.watermarkSvg.get(cacheKey);
-  if (!svg) {
-    svg = await loadWatermarkSvg(wmPath, step.opacity);
-    caches.watermarkSvg.set(cacheKey, svg);
-  }
-  const opts: WatermarkOptions = {
+  const opts = {
     opacity: step.opacity,
     sizeRatio: step.sizeRatio,
     paddingRatio: step.paddingRatio,
   };
-  let pipeline = sharp(ctx.buffer!);
-  pipeline = await compositeWatermark(
-    pipeline,
-    svg,
+  const layer = await getCachedWatermarkLayer(
+    wmPath,
+    step.opacity,
     ctx.width,
     ctx.height,
     opts,
+    caches,
   );
+  let pipeline = sharp(ctx.buffer!);
+  pipeline = pipeline.composite([
+    {
+      input: layer.png,
+      left: Math.max(0, ctx.width - layer.wmWidth - layer.margin),
+      top: Math.max(0, ctx.height - layer.wmHeight - layer.margin),
+    },
+  ]);
   const { data, info } = await pipeline.toBuffer({ resolveWithObject: true });
   ctx.buffer = data;
   ctx.width = info.width;
@@ -146,11 +141,12 @@ function applyCopyright(ctx: PipelineContext, step: CopyrightStep): void {
 async function applyEncoding(
   ctx: PipelineContext,
   step: EncodingStep,
+  caches: RunCaches,
 ): Promise<string> {
-  await ensureBuffer(ctx);
+  await ensureBuffer(ctx, caches);
   ctx.jpegQuality = step.jpegQuality;
   const outPath = buildStagingPath(ctx);
-  await ensureParentDir(outPath);
+  await ensureOutputDir(outPath, caches);
 
   let pipeline = sharp(ctx.buffer!);
   pipeline = mergeOutputExif(
@@ -172,11 +168,14 @@ async function applyEncoding(
   return outPath;
 }
 
-async function renameWritten(ctx: PipelineContext): Promise<void> {
+async function renameWritten(
+  ctx: PipelineContext,
+  caches: RunCaches,
+): Promise<void> {
   if (!ctx.writtenPath) return;
   const nextPath = buildOutputPath(ctx);
   if (nextPath === ctx.writtenPath) return;
-  await ensureParentDir(nextPath);
+  await ensureOutputDir(nextPath, caches);
   await fs.rename(ctx.writtenPath, nextPath);
   ctx.writtenPath = nextPath;
 }
@@ -190,20 +189,20 @@ export async function executeStep(
 ): Promise<string | undefined> {
   switch (step.type) {
     case "resize":
-      await applyResize(ctx, step);
+      await applyResize(ctx, step, caches);
       return undefined;
     case "watermark":
       await applyWatermark(ctx, step, cwd, caches);
       return undefined;
     case "filename":
       applyFilename(ctx, step);
-      if (ctx.writtenPath) await renameWritten(ctx);
+      if (ctx.writtenPath) await renameWritten(ctx, caches);
       return undefined;
     case "copyright":
       applyCopyright(ctx, step);
       return undefined;
     case "encoding":
-      return applyEncoding(ctx, step);
+      return applyEncoding(ctx, step, caches);
     default: {
       const _exhaustive: never = step;
       throw new Error(
@@ -217,22 +216,21 @@ export async function createStillsContext(
   sourcePath: string,
   sourceRoot: string,
   distRoot: string,
+  caches: RunCaches,
 ): Promise<PipelineContext> {
-  const meta = await readMetadataAfterRotate(sourcePath);
-  const w = meta.width ?? 0;
-  const h = meta.height ?? 0;
+  const source = await getOrLoadSource(sourcePath, caches);
   return {
     sourcePath,
     sourceRoot,
     distRoot,
-    buffer: null,
-    width: w,
-    height: h,
-    aspectLabel: pickAspectBucket(w, h).suffix,
+    buffer: Buffer.from(source.buffer),
+    width: source.width,
+    height: source.height,
+    aspectLabel: source.aspectLabel,
     suffix: "",
     branchKey: "",
     copyright: "",
-    hasSourceCopyright: hasExistingCopyright(meta),
+    hasSourceCopyright: source.hasSourceCopyright,
     writtenPath: null,
     outputExt: path.extname(sourcePath) || ".JPG",
     jpegQuality: 84,

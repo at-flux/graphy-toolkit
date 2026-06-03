@@ -7,7 +7,12 @@ vi.mock("../src/pipeline/step-handlers.js", async (importOriginal) => {
   return {
     ...actual,
     createStillsContext: vi.fn(
-      async (sourcePath: string, sourceRoot: string, distRoot: string) => ({
+      async (
+        sourcePath: string,
+        sourceRoot: string,
+        distRoot: string,
+        _caches: unknown,
+      ) => ({
         sourcePath,
         sourceRoot,
         distRoot,
@@ -39,8 +44,8 @@ const section: MediaSection = {
   ],
 };
 
-describe("runMediaPipeline scheduling", () => {
-  it("defaults to pipeline-first order", async () => {
+describe("runMediaPipeline", () => {
+  it("runs each pipeline across all files before the next", async () => {
     const order: string[] = [];
     const files = ["a.jpg", "b.jpg"];
 
