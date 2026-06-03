@@ -1,3 +1,15 @@
+## @at-flux/graphy-toolkit [1.0.5](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.4...@at-flux/graphy-toolkit@1.0.5) (2026-06-03)
+
+
+### Performance Improvements
+
+* **cli:** throttle progress bar redraws ([a185af5](https://github.com/at-flux/graphy-toolkit/commit/a185af5a571c58ae362257e550d87f208df85a64))
+
+
+### Dependencies
+
+* **@at-flux/graphy-toolkit-core:** upgraded to 1.0.3
+
 ## @at-flux/graphy-toolkit [1.0.4](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.3...@at-flux/graphy-toolkit@1.0.4) (2026-06-02)
 
 ### Features
