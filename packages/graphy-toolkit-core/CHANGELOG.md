@@ -1,9 +1,8 @@
 ## @at-flux/graphy-toolkit-core [1.0.3](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit-core@1.0.2...@at-flux/graphy-toolkit-core@1.0.3) (2026-06-03)
 
-
 ### Performance Improvements
 
-* **core:** pipeline-first scheduling and watermark cache ([08eeaad](https://github.com/at-flux/graphy-toolkit/commit/08eeaad20ae901d8975f030833f4a7a880d1fbf0))
+- **core:** pipeline-first scheduling and watermark cache ([08eeaad](https://github.com/at-flux/graphy-toolkit/commit/08eeaad20ae901d8975f030833f4a7a880d1fbf0))
 
 ## @at-flux/graphy-toolkit-core [1.0.2](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit-core@1.0.1...@at-flux/graphy-toolkit-core@1.0.2) (2026-06-02)
 
