@@ -30,7 +30,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@at-flux/graphy-toolkit-core": "1.0.4",
+    "@at-flux/graphy-toolkit-core": "workspace:*",
     "@stricli/core": "1.2.7",
     "zod": "4.4.3"
   },
