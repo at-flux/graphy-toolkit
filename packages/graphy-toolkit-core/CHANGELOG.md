@@ -1,9 +1,8 @@
 ## @at-flux/graphy-toolkit-core [1.0.4](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit-core@1.0.3...@at-flux/graphy-toolkit-core@1.0.4) (2026-06-03)
 
-
 ### Performance Improvements
 
-* **core:** cache sources and watermarks, drop file-first ([a930698](https://github.com/at-flux/graphy-toolkit/commit/a930698dd1f8ee5cc4ae6fbf31e11a3da45d9504))
+- **core:** cache sources and watermarks, drop file-first ([a930698](https://github.com/at-flux/graphy-toolkit/commit/a930698dd1f8ee5cc4ae6fbf31e11a3da45d9504))
 
 ## @at-flux/graphy-toolkit-core [1.0.3](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit-core@1.0.2...@at-flux/graphy-toolkit-core@1.0.3) (2026-06-03)
 

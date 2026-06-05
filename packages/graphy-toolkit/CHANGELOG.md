@@ -1,9 +1,8 @@
 ## @at-flux/graphy-toolkit [1.0.6](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.5...@at-flux/graphy-toolkit@1.0.6) (2026-06-03)
 
-
 ### Dependencies
 
-* **@at-flux/graphy-toolkit-core:** upgraded to 1.0.4
+- **@at-flux/graphy-toolkit-core:** upgraded to 1.0.4
 
 ## @at-flux/graphy-toolkit [1.0.5](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.4...@at-flux/graphy-toolkit@1.0.5) (2026-06-03)
 
