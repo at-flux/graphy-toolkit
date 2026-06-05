@@ -1,3 +1,10 @@
+## @at-flux/graphy-toolkit [1.0.7](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.6...@at-flux/graphy-toolkit@1.0.7) (2026-06-05)
+
+
+### Bug Fixes
+
+* **cli:** blank line between Applied pipeline blocks ([39da38a](https://github.com/at-flux/graphy-toolkit/commit/39da38aecbffc6b44cca50e280345db49ff461b1))
+
 ## @at-flux/graphy-toolkit [1.0.6](https://github.com/at-flux/graphy-toolkit/compare/@at-flux/graphy-toolkit@1.0.5...@at-flux/graphy-toolkit@1.0.6) (2026-06-03)
 
 ### Dependencies
